@@ -1,0 +1,28 @@
+# Web framework
+fastapi
+uvicorn[standard]
+
+# AI core
+langchain
+langgraph
+langchain-openai
+langchain-google-genai
+langchain-community
+langchain-core
+
+# Parsing & docs
+beautifulsoup4
+pypdf
+python-docx
+
+# Data
+pydantic
+numpy
+pandas
+
+# Vector DB (for embeddings / search)
+faiss-cpu
+
+# Utils
+httpx
+python-dotenv
