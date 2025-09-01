@@ -2,9 +2,15 @@ import { cookies } from 'next/headers';
 import './globals.css';
 import ThemeContextProvider from './ThemeContext';
 import ThemeToggleButton from '@/components/ThemeToggleButton';
+import Navbar from '@/components/Navbar';
 
 export const metadata = {
-  title: 'Mind Map',
+  title: 'Cognet',
+  icons: {
+    icon: '/images/logo.png', // default favicon
+    apple: '/images/logo.png', // optional for Apple devices
+    shortcut: '/images/logo.png', // optional
+  },
 };
 
 export default async function RootLayout({ children }) {
@@ -16,7 +22,8 @@ export default async function RootLayout({ children }) {
     <html lang="en">
       <body>
         <ThemeContextProvider isDarkMode={isDark}>
-          <ThemeToggleButton />
+          <Navbar />
+          {/* <ThemeToggleButton /> */}
           {children}
         </ThemeContextProvider>
       </body>

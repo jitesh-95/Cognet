@@ -1,11 +1,15 @@
-import Image from "next/image";
-import styles from "../styles/page.module.css";
-import Mindmap from "../components/Mindmap";
+import Footer from "@/components/Footer";
+import HeroSection from "@/components/HeroSection";
+import FeaturesSection from "@/components/FeaturesSection";
+import Contactus from "@/components/Contactus";
 
 export default function Home() {
   return (
-    <main style={{ height: "100vh", width: "100%" }}>
-      <Mindmap />
+    <main>
+      <HeroSection />
+      <FeaturesSection />
+      <Contactus />
+      <Footer />
     </main>
   );
 }

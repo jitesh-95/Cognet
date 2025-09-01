@@ -1,0 +1,56 @@
+.menuContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.linkDecoration {
+  text-decoration: none;
+}
+
+.navLink {
+  position: relative;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  color: var(--link-color);
+  font-weight: 400;
+}
+
+.navLink::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background-color: var(--active-color);
+  transition: width 0.3s ease;
+}
+
+.navLinkActive {
+  color: var(--active-color);
+  font-weight: 700;
+}
+
+.navLinkActive::after {
+  width: 100%;
+}
+
+.drawerPaper {
+  background-color: var(--drawer-bg);
+}
+
+.drawerItem {
+  transition: background-color 0.3s ease;
+  background-color: var(--drawer-hover);
+}
+
+.drawerItem:hover {
+  background-color: var(--drawer-hover);
+}
+
+.drawerItemActive {
+  font-weight: 700;
+  color: var(--active-color);
+}
