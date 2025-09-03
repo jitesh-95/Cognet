@@ -1,23 +1,14 @@
-import httpx
+# backend/services/cleaner.py
+from readability import Document
 from bs4 import BeautifulSoup
-from pypdf import PdfReader
-from typing import Optional
-import io
 
-def fetch_url_text(url: str) -> str:
+def extract_main_html(html: str) -> str:
     """
-    Simple fetch + extract text (paragraphs). Not perfect, but works for many articles.
+    Extract the main content from HTML.
+    Removes navigation, ads, headers/footers.
     """
-    r = httpx.get(url, timeout=20.0)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
-    # naive: join <p> tags
-    paragraphs = [p.get_text(strip=True) for p in soup.find_all("p")]
-    return "\n\n".join([p for p in paragraphs if p])
-
-def extract_text_from_pdf_bytes(file_bytes: bytes) -> str:
-    reader = PdfReader(io.BytesIO(file_bytes))
-    pages = []
-    for p in reader.pages:
-        pages.append(p.extract_text() or "")
-    return "\n\n".join(pages)
+    doc = Document(html)
+    content_html = doc.summary()
+    # Optional: strip HTML tags to get plain text
+    soup = BeautifulSoup(content_html, "html.parser")
+    return soup.get_text(separator="\n", strip=True)

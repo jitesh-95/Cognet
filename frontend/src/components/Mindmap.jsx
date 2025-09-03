@@ -1,32 +1,115 @@
 "use client";
-import React from "react";
-import ReactFlow, { Background, Controls } from "reactflow";
-import "reactflow/dist/style.css";
+import React, { useCallback, useLayoutEffect } from "react";
+import '@xyflow/react/dist/style.css';
+import ELK from "elkjs/lib/elk.bundled.js";
+import {
+  Background,
+  ReactFlow,
+  addEdge,
+  Panel,
+  useNodesState,
+  useEdgesState,
+  useReactFlow,
+  Controls,
+  ReactFlowProvider,
+} from '@xyflow/react';
+import { Box, Button } from "@mui/material";
+import { DetailNode, RootNode, SubNode } from "./CustomNodes";
 
-const nodes = [
-  { id: "1", position: { x: 0, y: 0 }, data: { label: "LangChain" } },
-  { id: "2", position: { x: -150, y: 100 }, data: { label: "LLMs" } },
-  { id: "3", position: { x: 150, y: 100 }, data: { label: "Prompting" } },
-  { id: "4", position: { x: -150, y: 200 }, data: { label: "Tools" } },
-  { id: "5", position: { x: 150, y: 200 }, data: { label: "Chains" } },
-  { id: "6", position: { x: 0, y: 300 }, data: { label: "Agents" } },
-];
+const elk = new ELK();
 
-const edges = [
-  { id: "e1-2", source: "1", target: "2" },
-  { id: "e1-3", source: "1", target: "3" },
-  { id: "e2-4", source: "2", target: "4" },
-  { id: "e3-5", source: "3", target: "5" },
-  { id: "e5-6", source: "5", target: "6" },
-];
+const elkOptions = {
+  'elk.algorithm': 'layered',
+  'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+  'elk.spacing.nodeNode': '80',
+};
 
-export default function Mindmap() {
-  return (
-    <div style={{ width: "100%", height: "100vh" }}>
-      <ReactFlow nodes={nodes} edges={edges} fitView>
-        <Background />
-        <Controls />
-      </ReactFlow>
-    </div>
-  );
+const getLayoutedElements = (nodes, edges, options = {}) => {
+  const isHorizontal = options?.['elk.direction'] === 'RIGHT';
+
+  const graph = {
+    id: 'root',
+    layoutOptions: options,
+    children: nodes.map((node) => ({
+      ...node,
+      position: { x: 0, y: 0 },
+      targetPosition: isHorizontal ? 'left' : 'top',
+      sourcePosition: isHorizontal ? 'right' : 'bottom',
+      width: 200, // adjust based on label+description
+      height: 70, // enough for content under label
+    })),
+    edges: edges,
+  };
+
+  return elk
+    .layout(graph)
+    .then((layoutedGraph) => ({
+      nodes: layoutedGraph.children.map((node) => ({
+        ...node,
+        position: { x: node.x, y: node.y },
+      })),
+      edges: layoutedGraph.edges,
+    }))
+    .catch(console.error);
+};
+
+const nodeTypes = {
+  root: RootNode,
+  sub: SubNode,
+  detail: DetailNode
 }
+
+const Mindmap = ({ data }) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const { fitView } = useReactFlow();
+
+  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
+
+  const onLayout = useCallback(
+    ({ direction }) => {
+      const opts = { 'elk.direction': direction, ...elkOptions };
+
+      getLayoutedElements(data?.nodes, data?.edges, opts).then(
+        ({ nodes: layoutedNodes, edges: layoutedEdges }) => {
+          setNodes(layoutedNodes);
+          setEdges(layoutedEdges);
+          fitView();
+        }
+      );
+    },
+    [nodes, edges]
+  );
+
+  useLayoutEffect(() => {
+    onLayout({ direction: 'DOWN', useInitialNodes: true }); // default vertical layout
+  }, []);
+
+  return (<div style={{ height: '90vh' }}>
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      nodeTypes={nodeTypes}
+      fitView
+    >
+      <Panel position="top-right">
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="contained" size="small" onClick={() => onLayout({ direction: 'DOWN' })}>Vertical</Button>
+          <Button variant="contained" size="small" onClick={() => onLayout({ direction: 'RIGHT' })}>Horizontal</Button>
+        </Box>
+      </Panel>
+      <Background />
+      <Controls />
+    </ReactFlow>
+  </div>
+  );
+};
+
+export default ({ data }) => (
+  <ReactFlowProvider>
+    <Mindmap data={data} />
+  </ReactFlowProvider>
+);

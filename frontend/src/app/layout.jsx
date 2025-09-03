@@ -1,16 +1,17 @@
 import { cookies } from 'next/headers';
 import './globals.css';
-import ThemeContextProvider from './ThemeContext';
 import ThemeToggleButton from '@/components/ThemeToggleButton';
 import Navbar from '@/components/Navbar';
+import ThemeContextProvider from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationProvider';
+import Head from 'next/head';
+// import logo from '../app/images/logo.png'
 
 export const metadata = {
   title: 'Cognet',
   icons: {
-    icon: '/images/logo.png', // default favicon
-    apple: '/images/logo.png', // optional for Apple devices
-    shortcut: '/images/logo.png', // optional
-  },
+
+  }
 };
 
 export default async function RootLayout({ children }) {
@@ -20,11 +21,16 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="en">
+      <Head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </Head>
       <body>
         <ThemeContextProvider isDarkMode={isDark}>
-          <Navbar />
-          {/* <ThemeToggleButton /> */}
-          {children}
+          <NotificationProvider>
+            <Navbar />
+            {/* <ThemeToggleButton /> */}
+            {children}
+          </NotificationProvider>
         </ThemeContextProvider>
       </body>
     </html>

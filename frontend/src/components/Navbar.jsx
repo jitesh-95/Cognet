@@ -10,7 +10,6 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useThemeMode } from "@/app/ThemeContext";
 import styles from '../styles/navbar.module.css';
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -18,8 +17,10 @@ import { Container, ListItemButton, Tooltip } from "@mui/material";
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import Image from "next/image";
+import logo from '../app/images/logo.png'
+import { useThemeMode } from "@/app/contexts/ThemeContext";
 
-const pages = ['Home'];
+const pages = [{ label: 'Map Using URL', url: 'using-url' }, { label: 'Map Using DOCs', url: 'using-docs' }];
 
 const Navbar = () => {
   const { darkMode, toggleTheme } = useThemeMode();
@@ -54,114 +55,58 @@ const Navbar = () => {
       }}
     >
       <Container className={styles.menuContainer} disableGutters maxWidth={false}>
-        {/* Logo Desktop */}
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-            <Image src='/images/logo.png' height={35} width={35} alt='logo' />
-            <Link href="/" passHref className={`${styles.linkDecoration}`}>
-              <Typography
-                variant="h4"
-                noWrap
-                sx={{
-                  fontWeight: 700,
-                  my: 1
-                }}
-              >
-                Cognet
-              </Typography>
-            </Link>
-          </Box>
-        </Box>
 
-        {/* Desktop links */}
-        <Box
-          sx={{
-            flexGrow: 1,
-            display: { xs: "none", md: "flex" },
-            justifyContent: "center",
-          }}
-        >
-          {pages.map((page) => {
-            const path = `/${page.toLowerCase().replace(" ", "-")}`;
-            const isActive = pathname === path;
-            return (
-              <Link
-                key={page}
-                href={path}
-                passHref
-                className={`${styles.linkDecoration}`}
-              >
-                <Typography variant="body1" className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
-                  sx={{ mx: 2, }}>
-                  {page}
-                </Typography>
-              </Link>
-            )
-          })}
-        </Box>
-
-        {/* Mobile menu button */}
-        <Box sx={{ display: { xs: "block", md: "none" } }}>
-          <IconButton size="large" onClick={toggleDrawer(true)}>
-            <MenuIcon />
-          </IconButton>
-        </Box>
-
-        {/* Mobile Logo */}
-        <Box sx={{ display: { xs: "block", md: "none" }, }}>
-          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-            <Image src='/images/logo.png' height={30} width={30} alt='logo' />
-            <Link href="/" passHref className={`${styles.linkDecoration}`}>
-              <Typography
-                variant="h5"
-                noWrap
-                sx={{
-                  fontWeight: 700,
-                  my: 1
-                }}
-              >
-                Cognet
-              </Typography>
-            </Link>
-          </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+          <Image src={logo} height={40} width={40} alt='logo' className={darkMode ? styles.logoDark : styles.logoLight} />
+          <Link href="/" passHref className={`${styles.linkDecoration}`}>
+            <Typography
+              variant="h4"
+              noWrap
+              sx={{
+                fontWeight: 700,
+                my: 1,
+                fontSize: { xs: '1.5rem', sm: '2rem' },
+                color: 'text.primary'
+              }}
+            >
+              Cognet
+            </Typography>
+          </Link>
         </Box>
 
         {/* Right icons */}
-        <Box>
+        <Box sx={{ display: 'flex', gap: 2 }}>
           <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'}>
             <IconButton sx={{ ml: 1 }} onClick={toggleTheme}>
               {darkMode ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
             </IconButton>
           </Tooltip>
-          {/* <Tooltip title="Profile">
-            <IconButton sx={{ ml: 1 }} >
-              <AccountCircleIcon />
-            </IconButton>
-          </Tooltip> */}
+          <IconButton size="large" onClick={toggleDrawer(true)} >
+            <MenuIcon />
+          </IconButton>
         </Box>
       </Container>
     </AppBar>
 
     {/* Mobile Drawer */}
     <Drawer
-      anchor="left"
+      anchor="right"
       open={drawerOpen}
       onClose={toggleDrawer(false)}
     >
       <List sx={{ mt: 2, width: 250 }}>
-        {pages.map((page) => {
-          const path = `/${page.toLowerCase().replace(" ", "-")}`;
-          const isActive = pathname === path;
+        {pages?.map(({ label, url }) => {
+          const isActive = pathname === url;
 
           return (
-            <ListItem key={page} disablePadding className={isActive ? styles.drawerItem : ''}>
+            <ListItem key={url} disablePadding className={isActive ? styles.drawerItem : ''}>
               <Link
-                href={path}
+                href={url}
                 passHref
                 className={`${styles.linkDecoration}`}
               >
                 <ListItemButton onClick={toggleDrawer(false)} sx={{ width: 250 }}>
-                  <ListItemText primary={page} className={isActive ? styles.drawerItemActive : ''} />
+                  <ListItemText primary={label} className={isActive ? styles.drawerItemActive : ''} />
                 </ListItemButton>
               </Link>
             </ListItem>

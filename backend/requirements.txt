@@ -1,28 +1,35 @@
-# Web framework
+# Backend framework
 fastapi
 uvicorn[standard]
 
-# AI core
-langchain
+# Async HTTP client
+httpx
+
+# Data validation and settings
+pydantic>=2
+pydantic-settings
+
+# HTML parsing and boilerplate removal
+beautifulsoup4
+readability-lxml
+trafilatura
+
+# Convert HTML -> Markdown (helps with chunking)
+markdownify
+
+# LLM integration
 langgraph
+langchain
+langchain-community
 langchain-openai
 langchain-google-genai
-langchain-community
-langchain-core
+langchain-anthropic
 
-# Parsing & docs
-beautifulsoup4
-pypdf
-python-docx
+# Anthropic API (optional if using Claude agents)
+anthropic
 
-# Data
-pydantic
-numpy
-pandas
+# Optional: Token management for chunk size control
+tiktoken
 
-# Vector DB (for embeddings / search)
-faiss-cpu
-
-# Utils
-httpx
+# Optional: Environment variable management
 python-dotenv

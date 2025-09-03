@@ -5,37 +5,43 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Image from "next/image";
+import feature1 from '../app/images/feature1.png';
+import feature2 from '../app/images/feature2.png';
+import feature3 from '../app/images/feature3.png';
+import feature4 from '../app/images/feature4.png';
+import feature5 from '../app/images/feature5.png';
+import feature6 from '../app/images/feature6.png';
 
 const features = [
   {
     title: "Interactive Mind Maps",
     description: "Create, organize, and visualize your ideas in a dynamic, interactive mind map.",
-    icon: "/images/feature1.png",
+    icon: feature1,
   },
   {
     title: "AI-Powered Insights",
     description: "Get smart suggestions and connections between your thoughts to enhance creativity.",
-    icon: "/images/feature2.png",
+    icon: feature2,
   },
   {
     title: "Customizable Nodes & Themes",
     description: "Personalize nodes with colors, icons, and themes to fit your workflow.",
-    icon: "/images/feature3.png",
+    icon: feature3,
   },
   {
     title: "Export & Share",
     description: "Export your mind maps as images, PDFs, or share a live link with anyone.",
-    icon: "/images/feature4.png",
+    icon: feature4,
   },
   {
     title: "Task & Idea Management",
     description: "Track ideas, assign tasks, and organize thoughts efficiently in one place.",
-    icon: "/images/feature5.png",
+    icon: feature5,
   },
   {
     title: "Cross-Platform Access",
     description: "Access your mind maps seamlessly across devices—desktop, tablet, or mobile—with consistent experience.",
-    icon: "/images/feature6.png",
+    icon: feature6,
   }
 ];
 

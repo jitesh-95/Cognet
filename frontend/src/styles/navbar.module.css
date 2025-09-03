@@ -5,6 +5,19 @@
   padding: 0 10px;
 }
 
+.logoLight {
+  background-color: #6e83f4;
+  border-radius: 50%;
+  padding: 4px;
+}
+
+.logoDark {
+  background-color: #292e44;
+  border-radius: 50%;
+  padding: 4px;
+
+}
+
 .linkDecoration {
   text-decoration: none;
 }

@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Image from "next/image";
 import styles from '../styles/page.module.css';
+import heroImg from '../app/images/heroImg.svg'
 
 const HeroSection = () => {
   return (
@@ -48,7 +49,7 @@ const HeroSection = () => {
             height: "auto",
           }}
         >
-          <Image src='/images/heroImg.svg' height={1920} width={1080} alt='hero image' className={styles.heroImage} />
+          <Image src={heroImg} height={1920} width={1080} alt='hero image' className={styles.heroImage} />
         </Box>
       </Box>
     </Box>

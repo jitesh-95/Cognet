@@ -25,6 +25,9 @@ export const lightTheme = createTheme({
       default: "#f5f5f5",
       paper: "#ffffff",
       iconBackground: '#f8f9fe',
+      rootNode: '#98a5f3',
+      subNode: '#E8F0FE',
+      detailNode: '#F5F5F5',
     },
     text: {
       primary: "#212121",
@@ -46,7 +49,7 @@ export const lightTheme = createTheme({
   components: {
     MuiButton: { styleOverrides: { root: { borderRadius: 8, textTransform: "none" } } },
     MuiPaper: { styleOverrides: { root: { borderRadius: 12 } } },
-    MuiAppBar: { styleOverrides: { root: { boxShadow: "none", borderRadius: '0' } } },
+    MuiAppBar: { styleOverrides: { root: { borderRadius: '0', background: '#ffffff' } } },
   },
 });
 
@@ -74,6 +77,9 @@ export const darkTheme = createTheme({
       default: "#171c30",
       paper: "#1e2339",
       iconBackground: '#292e44',
+      rootNode: '#6E83F4',
+      subNode: '#2C2F48',
+      detailNode: '#1E1E1E',
     },
     text: {
       primary: "#ffffff",

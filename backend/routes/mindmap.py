@@ -1,31 +1,49 @@
 from fastapi import APIRouter, HTTPException
-from schemas.mindmap import MindmapRequest, MindmapResponse
-from services.workflows.mindmap_graph import run_mindmap_flow
-import logging
+from services.llm import get_summarizer_llm  # import summarizer
+from schemas.mindmap import MindmapRequest
+from services import fetcher, extractor, mindmap_generator
+from utils.cache import cache
 
-router = APIRouter(prefix="/mindmap", tags=["Mindmap"])
-logger = logging.getLogger(__name__)
+router = APIRouter()
 
-@router.post("/", response_model=MindmapResponse)
-def generate_mindmap(req: MindmapRequest):
+mindmap_gen = mindmap_generator.MindmapGenerator()
+
+@router.post("/generate-mindmap-by-url")
+async def generate_mindmap(request: MindmapRequest):
     """
-    Orchestrator endpoint: accepts { source: { type, value } } and returns a MindmapResponse
+    Main endpoint to generate mindmap from a URL.
+    Includes:
+        - Cache check
+        - Fetch + extract main content
+        - Summarization
+        - Chunking
+        - Mindmap generation (nodes + edges)
+        - Caching
     """
     try:
-        result = run_mindmap_flow(req)
-        return result
-    except Exception as e:
-        logger.exception("Error generating mindmap")
-        raise HTTPException(status_code=500, detail=str(e))
+        url = request.url.strip()
+        # 1️⃣ Check cache first
+        cached = cache.get_cache(url)
+        if cached:
+            return {"source": url, "graph": cached["graph"], "cached": True}
 
-@router.post("/echo")
-def echo_mindmap(req: MindmapRequest):
-    # Simple echo for frontend testing
-    return {
-        "mapId": "echo-1",
-        "title": "Echo Mindmap",
-        "source": req.source,
-        "nodes": [],
-        "edges": [],
-        "chunks": []
-    }
+        # 2️⃣ Fetch HTML
+        html = await fetcher.fetch_url(url)
+
+        # 3️⃣ Extract main content (remove ads/headers)
+        text = extractor.extract_main_html(html)
+
+        # 5️⃣ Generate mindmap
+        graph = await mindmap_gen.generate_mindmap(text)
+
+        # 6️⃣ Cache and return
+        cache.set_cache(url, {"graph": graph, "text": text})
+
+        return {
+            "source": url,
+            "graph": graph,
+            "cached": False
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
