@@ -20,7 +20,7 @@ import Image from "next/image";
 import logo from '../app/images/logo.png'
 import { useThemeMode } from "@/app/contexts/ThemeContext";
 
-const pages = [{ label: 'Map Using URL', url: 'using-url' }, { label: 'Map Using DOCs', url: 'using-docs' }];
+const pages = [{ label: 'Mindmap from URL', url: 'url-map' }, { label: 'Mindmap from File', url: 'file-map' }];
 
 const Navbar = () => {
   const { darkMode, toggleTheme } = useThemeMode();
@@ -56,6 +56,7 @@ const Navbar = () => {
     >
       <Container className={styles.menuContainer} disableGutters maxWidth={false}>
 
+        {/* logo and name  */}
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
           <Image src={logo} height={40} width={40} alt='logo' className={darkMode ? styles.logoDark : styles.logoLight} />
           <Link href="/" passHref className={`${styles.linkDecoration}`}>
@@ -74,6 +75,33 @@ const Navbar = () => {
           </Link>
         </Box>
 
+        {/* desktop navigations */}
+        <Box
+          sx={{
+            flexGrow: 1,
+            display: { xs: "none", md: "flex" },
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {pages.map(({ label, url }) => {
+            const isActive = pathname === `/${url}`;
+            return (
+              <Link
+                key={url}
+                href={url}
+                passHref
+                className={`${styles.linkDecoration}`}
+              >
+                <Typography variant="body1" className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+                  sx={{ mx: 2, }}>
+                  {label}
+                </Typography>
+              </Link>
+            )
+          })}
+        </Box>
+
         {/* Right icons */}
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'}>
@@ -81,7 +109,7 @@ const Navbar = () => {
               {darkMode ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
             </IconButton>
           </Tooltip>
-          <IconButton size="large" onClick={toggleDrawer(true)} >
+          <IconButton size="large" onClick={toggleDrawer(true)} sx={{ display: { xs: 'block', md: 'none' } }}>
             <MenuIcon />
           </IconButton>
         </Box>
@@ -96,7 +124,7 @@ const Navbar = () => {
     >
       <List sx={{ mt: 2, width: 250 }}>
         {pages?.map(({ label, url }) => {
-          const isActive = pathname === url;
+          const isActive = pathname === `/${url}`;
 
           return (
             <ListItem key={url} disablePadding className={isActive ? styles.drawerItem : ''}>

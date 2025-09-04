@@ -43,7 +43,7 @@
 
 .navLinkActive {
   color: var(--active-color);
-  font-weight: 700;
+  font-weight: 600 !important;
 }
 
 .navLinkActive::after {
@@ -64,6 +64,6 @@
 }
 
 .drawerItemActive {
-  font-weight: 700;
+  font-weight: 600 !important;
   color: var(--active-color);
 }

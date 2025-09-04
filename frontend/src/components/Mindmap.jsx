@@ -17,7 +17,7 @@ import {
 import { Backdrop, Box, Button, CircularProgress, InputAdornment, List, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Paper, TextField, Typography } from "@mui/material";
 import { DetailNode, RootNode, SubNode } from "./CustomNodes";
 import { useThemeMode } from "@/app/contexts/ThemeContext";
-import NorthIcon from '@mui/icons-material/North';
+import SouthIcon from '@mui/icons-material/South';
 import EastIcon from '@mui/icons-material/East';
 import { useNotification } from "@/app/contexts/NotificationProvider";
 import ViewCompactIcon from '@mui/icons-material/ViewCompact';
@@ -48,8 +48,8 @@ const getLayoutedElements = (nodes, edges, options = {}) => {
       position: { x: 0, y: 0 },
       targetPosition: isHorizontal ? 'left' : 'top',
       sourcePosition: isHorizontal ? 'right' : 'bottom',
-      width: 250, // adjust based on label+description
-      height: getDynamicNodeHeight(node.data?.content || "", ctx), // enough for content under label
+      width: 320, // adjust based on label+description
+      height: getDynamicNodeHeight(node.data.graph?.content || "", ctx), // enough for content under label
     })),
     edges: edges,
   };
@@ -96,7 +96,7 @@ const Mindmap = ({ data }) => {
   const onLayout = useCallback(
     ({ direction }) => {
       const opts = { 'elk.direction': direction, ...elkOptions };
-      getLayoutedElements(data?.nodes, data?.edges, opts).then(
+      getLayoutedElements(data.graph?.nodes, data.graph?.edges, opts).then(
         ({ nodes: layoutedNodes, edges: layoutedEdges }) => {
           setNodes(layoutedNodes);
           setEdges(layoutedEdges);
@@ -181,32 +181,62 @@ const Mindmap = ({ data }) => {
       fitView
     >
       <Panel position="top-left">
-        <Paper sx={{ p: 0.8, borderRadius: '4px' }}>
-          <TextField
-            label="Search Nodes"
-            variant="outlined"
-            fullWidth
-            size="small"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            slotProps={{ input: { endAdornment: <InputAdornment position="end">{searchLoading ? <CircularProgress size='20px' /> : null}</InputAdornment> } }}
-          />
+        <Paper elevation={3} sx={{ px: 1.5, py: 1.2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.2rem' } }}>{data?.title}</Typography>
         </Paper>
-        {results.length > 0 && (
-          <List dense sx={{ mt: 1, bgcolor: "background.paper", borderRadius: 1, maxHeight: 200, overflow: "auto" }}>
-            {results.map((node) => (
-              <ListItemButton key={node.id} onClick={() => handleSelectNode(node)}>
-                <Typography variant="body2">{node.data?.label}</Typography>
-              </ListItemButton>
-            ))}
-          </List>
-        )}
+      </Panel>
+
+      <Panel position="top-center">
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <Paper sx={{ p: 0.8, borderRadius: '4px' }}>
+            <TextField
+              label="Search Nodes"
+              variant="outlined"
+              fullWidth
+              size="small"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              slotProps={{ input: { endAdornment: <InputAdornment position="end">{searchLoading ? <CircularProgress size='20px' /> : null}</InputAdornment> } }}
+            />
+          </Paper>
+          {results.length > 0 && (
+            <List dense sx={{ mt: 1, bgcolor: "background.paper", borderRadius: 1, maxHeight: 200, overflow: "auto" }}>
+              {results.map((node) => (
+                <ListItemButton key={node.id} onClick={() => handleSelectNode(node)}>
+                  <Typography variant="body2">{node.data?.label}</Typography>
+                </ListItemButton>
+              ))}
+            </List>
+          )}
+        </Box>
       </Panel>
 
       <Panel position="top-right">
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 1 }}>
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+            <Paper sx={{ p: 0.8, borderRadius: '4px' }}>
+              <TextField
+                label="Search Nodes"
+                variant="outlined"
+                fullWidth
+                size="small"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                slotProps={{ input: { endAdornment: <InputAdornment position="end">{searchLoading ? <CircularProgress size='20px' /> : null}</InputAdornment> } }}
+              />
+            </Paper>
+            {results.length > 0 && (
+              <List dense sx={{ mt: 1, bgcolor: "background.paper", borderRadius: 1, maxHeight: 200, overflow: "auto" }}>
+                {results.map((node) => (
+                  <ListItemButton key={node.id} onClick={() => handleSelectNode(node)}>
+                    <Typography variant="body2">{node.data?.label}</Typography>
+                  </ListItemButton>
+                ))}
+              </List>
+            )}
+          </Box>
           {/* export button */}
-          <ExportMindmap originalNodes={data.nodes} originalEdges={data.edges} nodes={nodes} edges={edges} setLoading={setExportLoading} />
+          <ExportMindmap originalNodes={data.graph.nodes} originalEdges={data.graph.edges} nodes={nodes} edges={edges} setLoading={setExportLoading} />
           {/* layout button  */}
           <Button variant="contained" size="small" onClick={handleClick} startIcon={<ViewCompactIcon />}>Layout</Button>
         </Box>
@@ -219,7 +249,7 @@ const Mindmap = ({ data }) => {
         >
           <MenuItem onClick={() => onOptionClick('DOWN')}>
             <ListItemIcon>
-              <NorthIcon fontSize="small" />
+              <SouthIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>Vertical</ListItemText>
           </MenuItem>

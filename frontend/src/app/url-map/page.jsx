@@ -6,7 +6,7 @@ import { useNotification } from '../contexts/NotificationProvider';
 import apiClient from '@/apiClient';
 import Mindmap from '@/components/Mindmap';
 
-const UsingUrl = () => {
+const MapUsingUrl = () => {
   const { showNotification } = useNotification();
   const [url, setUrl] = useState();
   const [loading, setLoading] = useState(false);
@@ -23,13 +23,14 @@ const UsingUrl = () => {
     pt: 2,
     px: 4,
     pb: 3,
-    textAlign: 'center'
+    textAlign: 'center',
+    borderRadius: 2
   };
 
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    const cachedData = localStorage.getItem('graph')
+    const cachedData = localStorage.getItem('graph-by-url')
     if (cachedData) setMindmapData(JSON.parse(cachedData))
     else setModalOpen(true);
 
@@ -48,13 +49,16 @@ const UsingUrl = () => {
     // validating url
     await apiClient.validateUrl(url).then(async (data) => {
       if (data.is_valid && data.is_reachable) {
-        showNotification({ message: `${data?.message} and Generating Mindmap...`, status: 'success' });
+        showNotification({
+          message: `${data?.message} & Generating Mindmap...`,
+          status: 'success'
+        });
 
         // fetching map data
         await apiClient.generateMindmapUsingUrl(url).then((data) => {
           if (data) {
-            setMindmapData(data.graph)
-            localStorage.setItem('graph', JSON.stringify(data.graph));
+            setMindmapData(data)
+            localStorage.setItem('graph-by-url', JSON.stringify(data));
             setModalOpen(false)
           }
         })
@@ -81,7 +85,11 @@ const UsingUrl = () => {
             Just drop your link below and let’s get started.
           </Typography>
           <TextField fullWidth placeholder="Enter Valid URL" size='small' onChange={(e) => setUrl(e.target.value)} />
-          <Button size='large' variant='contained' sx={{ mt: 2 }} onClick={handleSubmit} loading={loading}>Map It</Button>
+
+          <Box display="flex" justifyContent="center" alignItems='center' gap={1} sx={{ mt: 2 }}>
+            <Button onClick={() => setModalOpen(false)} size='large' loading={loading}>Cancel</Button>
+            <Button size='large' variant='contained' onClick={handleSubmit} loading={loading}>Map It</Button>
+          </Box>
         </Box>
       </Modal>
       {mindmapData && <Mindmap data={mindmapData} />}
@@ -89,4 +97,4 @@ const UsingUrl = () => {
   )
 }
 
-export default UsingUrl;
+export default MapUsingUrl;

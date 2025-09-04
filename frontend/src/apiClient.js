@@ -55,6 +55,18 @@ const apiClient = {
     }
   },
 
+  generateMindmapUsingFile: async (formData) => {
+    try {
+      const response = await axiosInstance.post('/generate-mindmap-by-file',
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      return response.data;
+    } catch (err) {
+      return handleError(err, 'Failed to generate data');
+    }
+  },
+
   createUser: async (data) => {
     try {
       const response = await axiosInstance.post('/users', data);

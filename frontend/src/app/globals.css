@@ -1,6 +1,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --link-color: #121212;
+  --active-color: #1976d2;
+  --drawer-bg: #f0f0f0;
+  --drawer-hover: #ddd;
+}
+
+body.dark {
+  --link-color: #fff;
+  --active-color: #6e83f4;
+  --drawer-bg: #121212;
+  --drawer-hover: #2a2a2a;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -103,7 +103,7 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges, setLoading 
     handleCloseDownload();
 
     const padding = 50;
-    const nodeWidth = 250;
+    const nodeWidth = 320;
     const contentFontSize = 12;
     const labelFontSize = 16;
     const lineHeight = 18;
@@ -183,7 +183,7 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges, setLoading 
     handleCloseDownload();
 
     const padding = 50;
-    const nodeWidth = 250;
+    const nodeWidth = 320;
     const baseNodeHeight = 70;
     const contentFontSize = 12;
     const labelFontSize = 16;
@@ -240,7 +240,7 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges, setLoading 
 
   return (
     <Box>
-      <Button variant="contained" size="small" startIcon={<DownloadIcon />} onClick={handleClickDownload}>Download</Button>
+      <Button variant="contained" size="small" startIcon={<DownloadIcon />} fullWidth onClick={handleClickDownload}>Download</Button>
       {/* download menu */}
       <Menu
         anchorEl={anchorDownload}
