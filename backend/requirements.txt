@@ -33,3 +33,9 @@ tiktoken
 
 # Optional: Environment variable management
 python-dotenv
+
+#pdf extraction
+PyMuPDF
+
+# file uploading
+python-multipart

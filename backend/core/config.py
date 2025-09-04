@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     OPENAI_MODEL_GRAPH: str = "gpt-4"
 
     GEMINI_API_KEY: str | None = None
-    GEMINI_MODEL_SUMMARIZER: str = "gemini-2.0-flash"
+    GEMINI_MODEL_SUMMARIZER: str = "gemini-2.0-flash-lite"
     GEMINI_MODEL_GRAPH: str = "gemini-2.0-flash"
 
     CHUNK_SIZE: int = 1200

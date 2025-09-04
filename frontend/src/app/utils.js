@@ -41,4 +41,28 @@ export function getDynamicNodeHeight(content, ctx = null, {
   });
 
   return baseNodeHeight + (lineCount - 1) * lineHeight + 20; // add padding
-}
+};
+
+// build elk graph with dynamic node heights
+export const buildElkGraph = (nodes, edges, options) => {
+  const { nodeWidth, baseNodeHeight, contentFontSize, lineHeight } = options;
+
+  return {
+    id: "root",
+    layoutOptions: {
+      "elk.algorithm": "layered",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "100",
+      "elk.spacing.nodeNode": "80",
+    },
+    children: nodes?.map(n => ({
+      id: n.id,
+      width: nodeWidth,
+      height: getDynamicNodeHeight(
+        n.data?.content,
+        null,
+        { baseNodeHeight, nodeWidth, contentFontSize, lineHeight }
+      ),
+    })),
+    edges: edges,
+  };
+};

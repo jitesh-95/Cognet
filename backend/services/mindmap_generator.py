@@ -1,13 +1,17 @@
 # backend/mindmap_generator.py
+from fastapi import HTTPException
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from services.llm import get_graph_llm
-import asyncio
+from services.llm import get_graph_llm, get_summarizer_llm
+from langchain.prompts import PromptTemplate
+from utils.llm_handler import LLMTokenExpiredError, safe_invoke
 import json
 import re
 import uuid
 
-# Prompt template to generate nodes and edges
-PROMPT_TEMPLATE = """
+# ✅ PromptTemplate for graph generation
+GRAPH_PROMPT = PromptTemplate(
+    input_variables=["text"],
+    template="""
 You are a mindmap generator. Based on the following text, create a JSON mindmap with "nodes" and "edges".
 
 Requirements:
@@ -76,63 +80,90 @@ Example:
   ]
 }}
 """
+)
+
+# ✅ New PromptTemplate for title generation
+TITLE_PROMPT = PromptTemplate(
+    input_variables=["text"],
+    template="""
+You are a text summarizer. Generate a **short, descriptive title** for the following text.
+Text:
+{text}
+
+Rules:
+- Return only a concise title (5 words max) summarizing the main idea.
+- Do not include any punctuation, explanations, or quotes.
+"""
+)
 
 class MindmapGenerator:
     def __init__(self):
         self.llm = get_graph_llm()
 
-    async def generate_chunk_mindmap(self, chunk: str) -> dict:
-        """Generate mindmap JSON for a single text chunk."""
-        response = await self.llm.ainvoke(PROMPT_TEMPLATE.format(text=chunk))
+    async def generate_chunk_mindmap(self, chunk: str, chunk_index: int) -> dict:
+        """Generate mindmap JSON for a single text chunk with unique IDs."""
+        chain = GRAPH_PROMPT | self.llm
+        
+        try:
+        # ✅ Wrap LLM call with safe_invoke
+          response = await safe_invoke(
+              chain.ainvoke,
+              {"text": chunk}
+          )
+        except LLMTokenExpiredError:
+        # Token expired — bubble up so FastAPI can handle
+          raise HTTPException(status_code=401, detail="LLM token expired")
+
         text = getattr(response, "content", None) or str(response)
 
-        # Extract JSON block from LLM response
+        # Extract JSON block
         match = re.search(r"\{.*\}", text, re.DOTALL)
         if match:
             text = match.group(0)
 
         try:
             mindmap = json.loads(text)
-            return mindmap
         except Exception as e:
             print("JSON parse error:", e)
             return {"nodes": [], "edges": []}
 
-    async def generate_mindmap(self, text: str) -> dict:
-        """Generate a full mindmap from text, handling chunking and merging."""
-        # 1️⃣ Split text into manageable chunks
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=3000,
-            chunk_overlap=200,
-            separators=["\n\n", "\n", ".", " ", ""]
-        )
-        chunks = splitter.split_text(text)
-
-        # 2️⃣ Generate mindmaps per chunk in parallel
-        chunk_maps = await asyncio.gather(
-            *[self.generate_chunk_mindmap(c) for c in chunks]
-        )
-
         final_nodes = []
         final_edges = []
+        node_id_map = {}
 
-        # 3️⃣ Merge nodes and edges with unique IDs
-        for i, cm in enumerate(chunk_maps):
-            node_id_map = {}
-            # Rename nodes uniquely
-            for node in cm.get("nodes", []):
-                old_id = node["id"]
-                new_id = f"chunk{i}_{old_id}_{uuid.uuid4().hex[:6]}"
-                node_id_map[old_id] = new_id
-                node["id"] = new_id
+        # Assign unique IDs to nodes
+        for node in mindmap.get("nodes", []):
+            old_id = node["id"]
+            new_id = f"chunk{chunk_index}_{uuid.uuid4().hex[:8]}"
+            node_id_map[old_id] = new_id
+            node["id"] = new_id
+            final_nodes.append(node)
 
-            # Rename edges and update source/target
-            for edge in cm.get("edges", []):
-                edge["id"] = f"edge_{uuid.uuid4().hex[:8]}"
-                edge["source"] = node_id_map.get(edge["source"], edge["source"])
-                edge["target"] = node_id_map.get(edge["target"], edge["target"])
-
-            final_nodes.extend(cm.get("nodes", []))
-            final_edges.extend(cm.get("edges", []))
+        # Assign unique IDs to edges and re-map source/target
+        for edge in mindmap.get("edges", []):
+            edge["id"] = f"edge_{uuid.uuid4().hex[:8]}"
+            edge["source"] = node_id_map.get(edge["source"], edge["source"])
+            edge["target"] = node_id_map.get(edge["target"], edge["target"])
+            final_edges.append(edge)
 
         return {"nodes": final_nodes, "edges": final_edges}
+    
+    async def generate_title(self, text: str) -> str:
+        """Generate a short descriptive title for the given text."""
+        summarizer = get_summarizer_llm()
+
+        chain = TITLE_PROMPT | summarizer
+        
+        try:
+            response = await safe_invoke(chain.ainvoke, {"text": text})
+        except LLMTokenExpiredError:
+            raise HTTPException(status_code=401, detail="LLM token expired")
+        
+        title = getattr(response, "content", None) or str(response)
+        # Clean title (remove whitespace/newlines)
+        return title.strip()
+
+    async def split_text_into_chunks(self, text: str, chunk_size: int = 3000):
+        """Split the text into chunks of a specific size."""
+        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size)
+        return splitter.split_text(text)

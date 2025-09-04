@@ -5,18 +5,15 @@ import ImageIcon from '@mui/icons-material/Image';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DownloadIcon from '@mui/icons-material/Download';
 import ELK from "elkjs/lib/elk.bundled.js";
-import { getDynamicNodeHeight, getFileName } from '@/app/utils';
+import { buildElkGraph, getFileName } from '@/app/utils';
+import jsPDF from 'jspdf';
 
-const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges }) => {
+const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges, setLoading }) => {
   const [anchorDownload, setAnchorDownload] = useState(null);
   const openDownload = Boolean(anchorDownload);
 
   const handleClickDownload = (event) => setAnchorDownload(event.currentTarget);
   const handleCloseDownload = () => setAnchorDownload(null);
-
-  const onDownloadOptionClick = (option) => {
-
-  };
 
   const nodeColor = (node) => {
     switch (node.type) {
@@ -29,7 +26,7 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges }) => {
     }
   };
 
-  // --- helper: wrap text ---
+  // --- helper: functions ---
   const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
     const words = text.split(" ");
     let line = "";
@@ -49,25 +46,18 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges }) => {
     return lines.length;
   };
 
-  // ------------------exporting---------------------
-  //-----------------------for json------------------------
-  const exportAsJSON = () => {
-    const data = JSON.stringify({ originalNodes, originalEdges }, null, 2);
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "mindmap.json";
-    link.click();
-
-    // Clean up
-    URL.revokeObjectURL(url);
-    link.remove();
-    handleCloseDownload();
+  // run elk layout
+  const runLayout = async (elkGraph) => {
+    const elk = new ELK();
+    return await elk.layout(elkGraph);
   };
 
-  //-----------------------for Image------------------------
+  // calculate required dimensions
+  const calculateDimensions = (layout, nodeWidth, baseNodeHeight, padding) => {
+    const width = Math.max(...layout.children.map(c => c.x + nodeWidth)) + padding;
+    const height = Math.max(...layout.children.map(c => c.y + baseNodeHeight)) + padding;
+    return { width, height };
+  };
 
   // ✅ helper: draw rounded rect
   const drawRoundedRect = (ctx, x, y, width, height, radius) => {
@@ -86,43 +76,51 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges }) => {
     ctx.stroke();
   };
 
+  // ------------------exporting---------------------
+
+  //-----------------------for json------------------------
+  const exportAsJSON = () => {
+    setLoading(true);
+    handleCloseDownload();
+    const data = JSON.stringify({ originalNodes, originalEdges }, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = getFileName("mindmap", "json");
+    link.click();
+
+    // Clean up
+    URL.revokeObjectURL(url);
+    link.remove();
+    setLoading(false);
+  };
+
+  //-----------------------for Image------------------------
   const exporAsImage = async () => {
+    setLoading(true);
+    handleCloseDownload();
+
     const padding = 50;
     const nodeWidth = 250;
     const contentFontSize = 12;
     const labelFontSize = 16;
     const lineHeight = 18;
-
-    const elk = new ELK();
+    const baseNodeHeight = 70;
 
     // --- prepare elk graph ---
-    const elkGraph = {
-      id: "root",
-      layoutOptions: {
-        "elk.algorithm": "layered",
-        "elk.layered.spacing.nodeNodeBetweenLayers": "150", // extra vertical gap
-        "elk.spacing.nodeNode": "60",                       // extra horizontal gap
-        'elk.layered.considerModelOrder': 'true',   // ✅ keep components apart
-        'elk.spacing.componentComponent': '200',    // ✅ extra gap between separate graphs
-      },
-      children: nodes?.map(n => ({
-        id: n.id,
-        width: nodeWidth,
-        height: getDynamicNodeHeight(n.data?.content || ""),
-      })),
-      edges: edges
-    };
+    const elkGraph = buildElkGraph(nodes, edges, { nodeWidth, baseNodeHeight, contentFontSize, lineHeight });
 
     // --- run layout ---
-    const layout = await elk.layout(elkGraph);
+    const layout = await runLayout(elkGraph);
     const nodePositions = {};
     layout.children?.forEach(c => {
       nodePositions[c.id] = { x: c.x, y: c.y, height: c.height };
     });
 
     // --- calculate canvas size ---
-    const width = Math.max(...layout.children?.map(c => c.x + nodeWidth)) + padding;
-    const height = Math.max(...layout.children?.map(c => c.y + c.height)) + padding;
+    const { width, height } = calculateDimensions(layout, nodeWidth, baseNodeHeight, padding);
 
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -176,7 +174,68 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges }) => {
     link.click();
     link.remove();
 
+    setLoading(false);
+  };
+
+  // ----------------------for PDF --------------------------
+  const exportAsPDF = async () => {
+    setLoading(true);
     handleCloseDownload();
+
+    const padding = 50;
+    const nodeWidth = 250;
+    const baseNodeHeight = 70;
+    const contentFontSize = 12;
+    const labelFontSize = 16;
+    const lineHeight = 18;
+    const borderRadius = 12;
+
+    const elkGraph = buildElkGraph(nodes, edges, { nodeWidth, baseNodeHeight, contentFontSize, lineHeight });
+    const layout = await runLayout(elkGraph);
+    const { width, height } = calculateDimensions(layout, nodeWidth, baseNodeHeight, padding);
+
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "px",
+      format: [width, height],
+    });
+
+    // draw edges
+    pdf.setLineWidth(1.5);
+    edges?.forEach(edge => {
+      const s = layout.children.find(c => c.id === edge.source);
+      const t = layout.children.find(c => c.id === edge.target);
+      if (!s || !t) return;
+      pdf.line(s.x + nodeWidth / 2, s.y + baseNodeHeight / 2, t.x + nodeWidth / 2, t.y + baseNodeHeight / 2);
+    });
+
+    // draw nodes
+    layout.children?.forEach(c => {
+      const node = nodes?.find(n => n.id === c.id);
+      const label = node?.data?.label || "";
+      const content = node?.data?.content || "";
+
+      const nodeHeight = c.height;
+
+      const fillColor = nodeColor(node);
+      pdf.setFillColor(fillColor);
+      pdf.setDrawColor(0, 0, 0);
+      pdf.roundedRect(c.x, c.y, nodeWidth, nodeHeight, borderRadius, borderRadius, "FD");
+
+      pdf.setTextColor("#ffffff");
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(labelFontSize);
+      pdf.text(label, c.x + 10, c.y + 20);
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(contentFontSize);
+      pdf.setTextColor("#dddddd");
+      const wrapped = pdf.splitTextToSize(content, nodeWidth - 20);
+      pdf.text(wrapped, c.x + 10, c.y + 40);
+    });
+
+    pdf.save(getFileName("mindmap", "pdf"));
+    setLoading(false);
   };
 
   return (
@@ -187,24 +246,26 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges }) => {
         anchorEl={anchorDownload}
         open={openDownload}
         onClose={handleCloseDownload}
+        autoFocus
+        disableAutoFocusItem
       >
-        <MenuItem onClick={exportAsJSON}>
-          <ListItemIcon>
-            <InsertDriveFileIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>JSON</ListItemText>
-        </MenuItem>
         <MenuItem onClick={exporAsImage}>
           <ListItemIcon>
             <ImageIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>IMAGE</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => onDownloadOptionClick('PDF')}>
+        <MenuItem onClick={exportAsPDF}>
           <ListItemIcon>
             <PictureAsPdfIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>PDF</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={exportAsJSON}>
+          <ListItemIcon>
+            <InsertDriveFileIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>JSON</ListItemText>
         </MenuItem>
       </Menu>
     </Box>

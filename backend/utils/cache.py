@@ -1,5 +1,6 @@
 # backend/utils/cache.py
 import time
+import hashlib
 
 class Cache:
     def __init__(self, ttl_seconds=3600):
@@ -19,8 +20,9 @@ class Cache:
 
     def set_cache(self, key, value):
         """Store value with TTL"""
+        # Use a hash of the key to handle larger PDFs gracefully
+        key_hash = hashlib.sha256(key.encode()).hexdigest()
         expiry = time.time() + self.ttl
-        self.store[key] = (value, expiry)
+        self.store[key_hash] = (value, expiry)
 
-# Singleton instance to use in backend
 cache = Cache(ttl_seconds=3600)  # 1 hour default

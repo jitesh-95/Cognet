@@ -75,7 +75,7 @@ const Navbar = () => {
         </Box>
 
         {/* Right icons */}
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'}>
             <IconButton sx={{ ml: 1 }} onClick={toggleTheme}>
               {darkMode ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}

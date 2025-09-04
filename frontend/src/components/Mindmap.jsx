@@ -14,7 +14,7 @@ import {
   ReactFlowProvider,
   MiniMap,
 } from '@xyflow/react';
-import { Box, Button, CircularProgress, InputAdornment, List, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Paper, TextField, Typography } from "@mui/material";
+import { Backdrop, Box, Button, CircularProgress, InputAdornment, List, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Paper, TextField, Typography } from "@mui/material";
 import { DetailNode, RootNode, SubNode } from "./CustomNodes";
 import { useThemeMode } from "@/app/contexts/ThemeContext";
 import NorthIcon from '@mui/icons-material/North';
@@ -78,6 +78,7 @@ const Mindmap = ({ data }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const { fitView, setCenter } = useReactFlow();
   const { showNotification } = useNotification();
+  const [exportLoading, setExportLoading] = useState(false);
   const { darkMode } = useThemeMode();
   // search
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,7 +114,7 @@ const Mindmap = ({ data }) => {
   const nodeColor = (node) => {
     switch (node.type) {
       case 'root':
-        return '#6E83F4';
+        return '#91bbeb';
       case 'sub':
         return '#2C2F48';
       default:
@@ -164,6 +165,12 @@ const Mindmap = ({ data }) => {
   };
 
   return (<div style={{ height: '90vh' }} id="mindmap-wrapper">
+    <Backdrop
+      sx={(theme) => ({ color: `${darkMode ? "rgba(255,255,255,0.5)" : 'rgba(77, 76, 76, 0.7)'}`, zIndex: theme.zIndex.drawer + 1 })}
+      open={exportLoading}
+    >
+      <CircularProgress size='50px' color="inherit" />
+    </Backdrop>
     <ReactFlow
       nodes={nodes}
       edges={edges}
@@ -173,7 +180,7 @@ const Mindmap = ({ data }) => {
       nodeTypes={nodeTypes}
       fitView
     >
-      <Panel position="top-left" style={{ width: 200 }}>
+      <Panel position="top-left">
         <Paper sx={{ p: 0.8, borderRadius: '4px' }}>
           <TextField
             label="Search Nodes"
@@ -197,9 +204,9 @@ const Mindmap = ({ data }) => {
       </Panel>
 
       <Panel position="top-right">
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
           {/* export button */}
-          <ExportMindmap originalNodes={data.nodes} originalEdges={data.edges} nodes={nodes} edges={edges} />
+          <ExportMindmap originalNodes={data.nodes} originalEdges={data.edges} nodes={nodes} edges={edges} setLoading={setExportLoading} />
           {/* layout button  */}
           <Button variant="contained" size="small" onClick={handleClick} startIcon={<ViewCompactIcon />}>Layout</Button>
         </Box>
