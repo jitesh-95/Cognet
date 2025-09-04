@@ -10,6 +10,7 @@ const ModalOpenButton = ({ onClick, title }) => {
       <Fab
         color="primary"
         aria-label="toggle modal"
+        size='medium'
         onClick={onClick}
         sx={{
           position: "fixed",

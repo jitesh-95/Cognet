@@ -47,3 +47,18 @@ a {
   min-height: calc(100vh - 90px);
   width: 100%;
 }
+
+/* mind map */
+
+.mindmap-controls-dark {
+  background-color: #1e2339;
+  border: 1px solid rgb(143, 142, 142);
+
+  button {
+    background-color: #1e2339;
+  }
+}
+
+.mindmap-controls-light {
+  border: 1px solid rgb(172, 170, 170);
+}

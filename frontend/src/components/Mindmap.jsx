@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useLayoutEffect } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import '@xyflow/react/dist/style.css';
 import ELK from "elkjs/lib/elk.bundled.js";
 import {
@@ -12,31 +12,44 @@ import {
   useReactFlow,
   Controls,
   ReactFlowProvider,
+  MiniMap,
 } from '@xyflow/react';
-import { Box, Button } from "@mui/material";
+import { Box, Button, CircularProgress, InputAdornment, List, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Paper, TextField, Typography } from "@mui/material";
 import { DetailNode, RootNode, SubNode } from "./CustomNodes";
+import { useThemeMode } from "@/app/contexts/ThemeContext";
+import NorthIcon from '@mui/icons-material/North';
+import EastIcon from '@mui/icons-material/East';
+import { useNotification } from "@/app/contexts/NotificationProvider";
+import ViewCompactIcon from '@mui/icons-material/ViewCompact';
+import ExportMindmap from "./ExportMindmap";
+import { getDynamicNodeHeight } from "@/app/utils";
 
 const elk = new ELK();
 
 const elkOptions = {
   'elk.algorithm': 'layered',
-  'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-  'elk.spacing.nodeNode': '80',
+  'elk.layered.spacing.nodeNodeBetweenLayers': '150',
+  'elk.spacing.nodeNode': '60',
+  'elk.layered.considerModelOrder': 'true',   // ✅ keep components apart
+  'elk.spacing.componentComponent': '200',    // ✅ extra gap between separate graphs
 };
 
 const getLayoutedElements = (nodes, edges, options = {}) => {
   const isHorizontal = options?.['elk.direction'] === 'RIGHT';
 
+  const measureCanvas = document.createElement("canvas");
+  const ctx = measureCanvas.getContext("2d");
+
   const graph = {
     id: 'root',
     layoutOptions: options,
-    children: nodes.map((node) => ({
+    children: nodes?.map((node) => ({
       ...node,
       position: { x: 0, y: 0 },
       targetPosition: isHorizontal ? 'left' : 'top',
       sourcePosition: isHorizontal ? 'right' : 'bottom',
-      width: 200, // adjust based on label+description
-      height: 70, // enough for content under label
+      width: 250, // adjust based on label+description
+      height: getDynamicNodeHeight(node.data?.content || "", ctx), // enough for content under label
     })),
     edges: edges,
   };
@@ -57,19 +70,31 @@ const nodeTypes = {
   root: RootNode,
   sub: SubNode,
   detail: DetailNode
-}
+};
 
 const Mindmap = ({ data }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const { fitView } = useReactFlow();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const { fitView, setCenter } = useReactFlow();
+  const { showNotification } = useNotification();
+  const { darkMode } = useThemeMode();
+  // search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [results, setResults] = useState([]);
+
+  // menus
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
 
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
 
   const onLayout = useCallback(
     ({ direction }) => {
       const opts = { 'elk.direction': direction, ...elkOptions };
-
       getLayoutedElements(data?.nodes, data?.edges, opts).then(
         ({ nodes: layoutedNodes, edges: layoutedEdges }) => {
           setNodes(layoutedNodes);
@@ -78,14 +103,67 @@ const Mindmap = ({ data }) => {
         }
       );
     },
-    [nodes, edges]
+    [data, fitView]
   );
 
   useLayoutEffect(() => {
-    onLayout({ direction: 'DOWN', useInitialNodes: true }); // default vertical layout
-  }, []);
+    onLayout({ direction: 'RIGHT', useInitialNodes: true }); // default vertical layout
+  }, [data, onLayout]);
 
-  return (<div style={{ height: '90vh' }}>
+  const nodeColor = (node) => {
+    switch (node.type) {
+      case 'root':
+        return '#6E83F4';
+      case 'sub':
+        return '#2C2F48';
+      default:
+        return '#1E1E1E';
+    }
+  };
+
+  const onOptionClick = (option) => {
+    onLayout({ direction: option });
+    handleClose();
+  };
+
+  // ------------------- search functions-----------------------
+  const debounceSearch = (query) => {
+    if (query.length === 0) {
+      setResults([]);
+      setSearchLoading(false);
+      return;
+    }
+    if (query.length > 2) {
+      const filtered = nodes?.filter((n) =>
+        n.data?.label?.toLowerCase()?.includes(query.toLowerCase())
+      );
+      setResults(filtered || []);
+      setSearchLoading(false);
+    }
+  };
+
+  // debounce search (3s)
+  useEffect(() => {
+    setSearchLoading(true);
+    const handler = setTimeout(() => {
+      debounceSearch(searchQuery);
+    }, 2000);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // -------------------------selecting node--------------------------------
+  const handleSelectNode = (node) => {
+    if (node?.position) {
+      const zoom = 1.5;
+      setCenter(node.position.x, node.position.y, { zoom, duration: 800 });
+    } else {
+      showNotification({ message: "Node position not found", status: "error" });
+    }
+    setResults([]);
+    setSearchQuery(""); // clear field
+  };
+
+  return (<div style={{ height: '90vh' }} id="mindmap-wrapper">
     <ReactFlow
       nodes={nodes}
       edges={edges}
@@ -95,14 +173,61 @@ const Mindmap = ({ data }) => {
       nodeTypes={nodeTypes}
       fitView
     >
+      <Panel position="top-left" style={{ width: 200 }}>
+        <Paper sx={{ p: 0.8, borderRadius: '4px' }}>
+          <TextField
+            label="Search Nodes"
+            variant="outlined"
+            fullWidth
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            slotProps={{ input: { endAdornment: <InputAdornment position="end">{searchLoading ? <CircularProgress size='20px' /> : null}</InputAdornment> } }}
+          />
+        </Paper>
+        {results.length > 0 && (
+          <List dense sx={{ mt: 1, bgcolor: "background.paper", borderRadius: 1, maxHeight: 200, overflow: "auto" }}>
+            {results.map((node) => (
+              <ListItemButton key={node.id} onClick={() => handleSelectNode(node)}>
+                <Typography variant="body2">{node.data?.label}</Typography>
+              </ListItemButton>
+            ))}
+          </List>
+        )}
+      </Panel>
+
       <Panel position="top-right">
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button variant="contained" size="small" onClick={() => onLayout({ direction: 'DOWN' })}>Vertical</Button>
-          <Button variant="contained" size="small" onClick={() => onLayout({ direction: 'RIGHT' })}>Horizontal</Button>
+          {/* export button */}
+          <ExportMindmap originalNodes={data.nodes} originalEdges={data.edges} nodes={nodes} edges={edges} />
+          {/* layout button  */}
+          <Button variant="contained" size="small" onClick={handleClick} startIcon={<ViewCompactIcon />}>Layout</Button>
         </Box>
+
+        {/* layout menu */}
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+        >
+          <MenuItem onClick={() => onOptionClick('DOWN')}>
+            <ListItemIcon>
+              <NorthIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Vertical</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => onOptionClick('RIGHT')}>
+            <ListItemIcon>
+              <EastIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Horizontal</ListItemText>
+          </MenuItem>
+        </Menu>
       </Panel>
+
       <Background />
-      <Controls />
+      <Controls className={darkMode ? "mindmap-controls-dark" : "mindmap-controls-light"} />
+      <MiniMap pannable zoomable nodeStrokeWidth={3} nodeColor={nodeColor} bgColor={darkMode ? "rgba(255,255,255,0.5)" : 'rgba(77, 76, 76, 0.7)'} />
     </ReactFlow>
   </div>
   );

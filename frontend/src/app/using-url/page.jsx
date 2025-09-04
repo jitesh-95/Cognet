@@ -45,11 +45,12 @@ const UsingUrl = () => {
     if (!url) return showNotification({ message: 'Plase enter a valid URL', status: 'error' });
 
     setLoading(true);
+    // validating url
     await apiClient.validateUrl(url).then(async (data) => {
       if (data.is_valid && data.is_reachable) {
-        showNotification({ message: data?.message, status: 'success' });
-        showNotification({ message: 'Generating mindmap', status: 'success' });
+        showNotification({ message: `${data?.message} and Generating Mindmap...`, status: 'success' });
 
+        // fetching map data
         await apiClient.generateMindmapUsingUrl(url).then((data) => {
           if (data) {
             setMindmapData(data.graph)

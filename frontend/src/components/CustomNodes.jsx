@@ -12,7 +12,7 @@ export const RootNode = (props) => {
         flexDirection: 'column',
         backgroundColor: "background.rootNode"
       }}>
-        <Typography variant="h6">{props?.data?.label}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>{props?.data?.label}</Typography>
         <Typography variant="body2">{props?.data?.content}</Typography>
       </Paper>
       <Handle type='source' position={props?.sourcePosition} style={{ position: "absolute" }} />
@@ -32,7 +32,7 @@ export const SubNode = (props) => {
         flexDirection: 'column',
         backgroundColor: "background.subNode"
       }}>
-        <Typography variant="h6">{props?.data?.label}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>{props?.data?.label}</Typography>
         <Typography variant="body2">{props?.data?.content}</Typography>
       </Paper>
       <Handle type='source' position={props?.sourcePosition} style={{ position: "absolute" }} />
@@ -52,7 +52,7 @@ export const DetailNode = (props) => {
         flexDirection: 'column',
         backgroundColor: "background.detailNode"
       }}>
-        <Typography variant="h6">{props?.data?.label}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>{props?.data?.label}</Typography>
         <Typography variant="body2">{props?.data?.content}</Typography>
       </Paper>
       <Handle type='source' position={props?.sourcePosition} style={{ position: "absolute" }} />

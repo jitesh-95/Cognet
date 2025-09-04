@@ -16,7 +16,7 @@ Requirements:
   - type ("root" if it represents the central/main idea, "sub" if it's a direct child of root, or "detail" for lower-level nodes)
   - data: {{
       "label": "Heading of the node",
-      "content": "One-line description of the node"
+      "content": "One-line description/detail/summary of the node"
     }}
 - Each edge must include:
   - id (unique)
@@ -30,7 +30,7 @@ Rules:
 - Return **strict JSON ONLY**, no explanations, comments, or extra text.
 - Ensure all node and edge ids are unique.
 - Use type "root" for the main central concept, "sub" for first-level children of root, and "detail" for deeper levels.
-- `content` should always be a one-line summary of the node label based on the text.
+- `content` should always be a one-line summary/detail of the node label based on the text and cannot be empty.
 - Do not include children arrays.
 - All references in source and target must use the unique node IDs.
 
