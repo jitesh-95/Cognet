@@ -17,7 +17,10 @@ You are a mindmap generator. Based on the following text, create a JSON mindmap 
 Requirements:
 - Each node must include:
   - id (unique)
-  - type ("root" if it represents the central/main idea, "sub" if it's a direct child of root, or "detail" for lower-level nodes)
+  - type (MUST follow these depth-based rules):
+    * "root": exactly ONE node that represents the central/main idea (depth = 0).
+    * "sub": direct children of the root (depth = 1).
+    * "detail": all deeper nodes (depth >= 2).
   - data: {{
       "label": "Heading of the node",
       "content": "One-line description/detail/summary of the node"
@@ -33,7 +36,9 @@ Text:
 Rules:
 - Return **strict JSON ONLY**, no explanations, comments, or extra text.
 - Ensure all node and edge ids are unique.
-- Use type "root" for the main central concept, "sub" for first-level children of root, and "detail" for deeper levels.
+- There must be exactly one "root" node.
+- All direct children of the root must be "sub".
+- Only nodes below the "sub" layer can be "detail".
 - `content` should always be a one-line summary/detail of the node label based on the text and cannot be empty.
 - Do not include children arrays.
 - All references in source and target must use the unique node IDs.
@@ -95,6 +100,69 @@ Rules:
 - Do not include any punctuation, explanations, or quotes.
 """
 )
+
+def merge_mindmaps(mindmaps: list[dict]) -> dict:
+    """
+    Merge multiple mindmaps (from different chunks) into one.
+    - Deduplicate root nodes by label (case-insensitive).
+    - Deduplicate sub/detail nodes by (parent_id + label).
+    - Ensure all edges point to the correct merged nodes.
+    """
+    merged_nodes = []
+    merged_edges = []
+
+    # Track unique nodes
+    root_map = {}        # label_lower -> root_id
+    child_map = {}       # (parent_id, label_lower) -> node_id
+    id_remap = {}        # old_id -> new_id
+
+    for mm in mindmaps:
+        for node in mm.get("nodes", []):
+            old_id = node["id"]
+            node_label = node["data"]["label"].strip().lower()
+
+            # ✅ Root deduplication
+            if node["type"] == "root":
+                if node_label in root_map:
+                    id_remap[old_id] = root_map[node_label]
+                    continue
+                else:
+                    root_map[node_label] = old_id
+                    merged_nodes.append(node)
+                    continue
+
+            # ✅ For sub/detail nodes, check if parent exists in edges
+            parent_id = None
+            for e in mm.get("edges", []):
+                if e["target"] == old_id:
+                    parent_id = e["source"]
+                    break
+
+            key = (parent_id, node_label)
+            if parent_id and key in child_map:
+                # Map old_id to existing deduped node
+                id_remap[old_id] = child_map[key]
+                continue
+            else:
+                child_map[key] = old_id
+                merged_nodes.append(node)
+
+        # ✅ Process edges
+        for edge in mm.get("edges", []):
+            edge = edge.copy()
+            if edge["source"] in id_remap:
+                edge["source"] = id_remap[edge["source"]]
+            if edge["target"] in id_remap:
+                edge["target"] = id_remap[edge["target"]]
+
+            # avoid duplicate edges
+            if not any(
+                e["source"] == edge["source"] and e["target"] == edge["target"]
+                for e in merged_edges
+            ):
+                merged_edges.append(edge)
+
+    return {"nodes": merged_nodes, "edges": merged_edges}
 
 class MindmapGenerator:
     def __init__(self):

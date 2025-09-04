@@ -25,18 +25,18 @@ SUMMARY_PROMPT = PromptTemplate(
     ),
 )
 
-
+# calling LLM every chunk
 async def process_chunks_and_generate_mindmap(chunks: list[str], summarizer, prompt_template: PromptTemplate):
     """
     Summarize text chunks progressively and generate a combined mindmap.
     """
-    final_graph = {"nodes": [], "edges": []}
     prev_summary = ""
+    chunk_mindmaps = []  # ✅ Collect all chunk-level mindmaps
 
     # Build summarization chain once
     chain: RunnableSequence = prompt_template | summarizer
 
-    for i, chunk in  enumerate(chunks):
+    for i, chunk in enumerate(chunks):
         try:
             # ✅ Run summarization with safe_invoke
             result = await safe_invoke(
@@ -48,19 +48,25 @@ async def process_chunks_and_generate_mindmap(chunks: list[str], summarizer, pro
                 logger.warning(f"Summarization returned None for chunk {i}")
                 summarized_text = ""
             else:
-                summarized_text = result.content if hasattr(result, "content") else str(result)
+                summarized_text = (
+                    result.content if hasattr(result, "content") else str(result)
+                )
 
             # Generate mindmap for this chunk
-            mindmap = await mindmap_gen.generate_chunk_mindmap(summarized_text, chunk_index=i)
+            mindmap = await mindmap_gen.generate_chunk_mindmap(
+                summarized_text, chunk_index=i
+            )
 
-            final_graph["nodes"].extend(mindmap.get("nodes", []))
-            final_graph["edges"].extend(mindmap.get("edges", []))
+            # ✅ Collect per-chunk mindmap instead of merging here
+            chunk_mindmaps.append(mindmap)
 
             prev_summary = summarized_text
         except Exception as e:
             logger.error(f"Failed processing chunk: {e}", exc_info=True)
             raise
 
+    # ✅ Merge all collected mindmaps into one final graph
+    final_graph = mindmap_generator.merge_mindmaps(chunk_mindmaps)
     return final_graph
 
 
