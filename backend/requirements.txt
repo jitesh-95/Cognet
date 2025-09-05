@@ -26,7 +26,7 @@ langchain-google-genai
 langchain-anthropic
 
 # Anthropic API (optional if using Claude agents)
-anthropic
+# anthropic
 
 # Optional: Token management for chunk size control
 tiktoken
