@@ -5,7 +5,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DownloadIcon from '@mui/icons-material/Download';
 import ELK from "elkjs/lib/elk.bundled.js";
-import { buildElkGraph, getFileName } from '@/app/utils';
+import { buildElkGraph, getFileName } from '../utils';
 import jsPDF from 'jspdf';
 
 const ExportMindmap = ({ nodes, edges, setLoading }) => {

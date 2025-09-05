@@ -17,8 +17,8 @@ import { Container, ListItemButton, Tooltip } from "@mui/material";
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import Image from "next/image";
-import logo from '../app/images/logo.png'
-import { useThemeMode } from "@/app/contexts/ThemeContext";
+import logo from '../images/logo.png'
+import { useThemeMode } from "../contexts/ThemeContext";
 
 const pages = [{ label: 'Mindmap from URL', url: 'url-map' }, { label: 'Mindmap from File', url: 'file-map' }];
 

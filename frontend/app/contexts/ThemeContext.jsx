@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
-import { lightTheme, darkTheme } from '../../theme';
+import { lightTheme, darkTheme } from '../theme';
 
 const ThemeContext = createContext();
 export function useThemeMode() {

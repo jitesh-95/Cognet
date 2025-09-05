@@ -1,13 +1,13 @@
 'use client'
-import Mindmap from '@/components/Mindmap'
-import ModalOpenButton from '@/components/ModalOpenButton'
+import Mindmap from '../components/Mindmap'
+import ModalOpenButton from '../components/ModalOpenButton'
 import { Box, Button, Divider, IconButton, List, ListItem, ListItemText, Modal, Typography } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react';
 import { useNotification } from '../contexts/NotificationProvider';
-import apiClient from '@/apiClient';
+import apiClient from '../apiClient';
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DeleteIcon from "@mui/icons-material/Delete";
-import StepsModal from '@/components/StepsModal';
+import StepsModal from '../components/StepsModal';
 
 const ALLOWED_FILE_TYPES = [
   "application/pdf",

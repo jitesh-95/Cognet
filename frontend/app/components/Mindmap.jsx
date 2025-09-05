@@ -16,13 +16,13 @@ import {
 } from '@xyflow/react';
 import { Backdrop, Box, Button, CircularProgress, InputAdornment, List, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Paper, TextField, Typography } from "@mui/material";
 import { DetailNode, RootNode, SubNode } from "./CustomNodes";
-import { useThemeMode } from "@/app/contexts/ThemeContext";
+import { useThemeMode } from "../contexts/ThemeContext";
 import SouthIcon from '@mui/icons-material/South';
 import EastIcon from '@mui/icons-material/East';
-import { useNotification } from "@/app/contexts/NotificationProvider";
+import { useNotification } from "../contexts/NotificationProvider";
 import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import ExportMindmap from "./ExportMindmap";
-import { getDynamicNodeHeight } from "@/app/utils";
+import { getDynamicNodeHeight } from "../utils";
 import EditNode from "./EditNode";
 import { usePathname } from "next/navigation";
 

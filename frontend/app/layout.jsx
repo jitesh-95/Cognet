@@ -1,11 +1,9 @@
 import { cookies } from 'next/headers';
 import './globals.css';
-import ThemeToggleButton from '@/components/ThemeToggleButton';
-import Navbar from '@/components/Navbar';
+import Navbar from './components/Navbar';
 import ThemeContextProvider from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationProvider';
 import Head from 'next/head';
-// import logo from '../app/images/logo.png'
 
 export const metadata = {
   title: 'Cognet',
@@ -28,7 +26,6 @@ export default async function RootLayout({ children }) {
         <ThemeContextProvider isDarkMode={isDark}>
           <NotificationProvider>
             <Navbar />
-            {/* <ThemeToggleButton /> */}
             {children}
           </NotificationProvider>
         </ThemeContextProvider>

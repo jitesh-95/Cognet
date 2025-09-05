@@ -5,7 +5,7 @@ import { Fab } from "@mui/material";
 
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
-import { useThemeMode } from "@/app/contexts/ThemeContext";
+import { useThemeMode } from "./contexts/ThemeContext";
 
 const ThemeToggleButton = () => {
   const { darkMode, toggleTheme } = useThemeMode();

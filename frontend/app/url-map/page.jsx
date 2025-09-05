@@ -1,11 +1,11 @@
 'use client'
-import ModalOpenButton from '@/components/ModalOpenButton';
+import ModalOpenButton from '../components/ModalOpenButton';
 import { Box, Button, Modal, TextField, Typography } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNotification } from '../contexts/NotificationProvider';
-import apiClient from '@/apiClient';
-import Mindmap from '@/components/Mindmap';
-import StepsModal from '@/components/StepsModal';
+import apiClient from '../apiClient';
+import Mindmap from '../components/Mindmap';
+import StepsModal from '../components/StepsModal';
 
 const MapUsingUrl = () => {
   const { showNotification } = useNotification();
