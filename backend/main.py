@@ -18,5 +18,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+@app.get("/api")
+def root():
+    return {"message": "Cognet is running! 🔥"}
+
 app.include_router(url_validation_router, prefix='/api')
 app.include_router(mindmap_router, prefix='/api')
