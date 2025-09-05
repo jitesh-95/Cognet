@@ -52,7 +52,11 @@ export const buildElkGraph = (nodes, edges, options) => {
     layoutOptions: {
       "elk.algorithm": "layered",
       "elk.layered.spacing.nodeNodeBetweenLayers": "100",
+      'elk.spacing.componentComponent': '120',
       "elk.spacing.nodeNode": "80",
+      'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF', // better positioning
+      'elk.spacing.base': '50',
+      'elk.edgeRouting': 'SPLINES',
     },
     children: nodes?.map(n => ({
       id: n.id,

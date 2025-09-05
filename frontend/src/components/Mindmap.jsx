@@ -32,6 +32,9 @@ const elkOptions = {
   'elk.spacing.nodeNode': '60',
   'elk.layered.considerModelOrder': 'true',   // ✅ keep components apart
   'elk.spacing.componentComponent': '200',    // ✅ extra gap between separate graphs
+  'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF', // better positioning
+  'elk.spacing.base': '50',
+  'elk.edgeRouting': 'SPLINES',
 };
 
 const getLayoutedElements = (nodes, edges, options = {}) => {
