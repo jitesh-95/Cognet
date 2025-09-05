@@ -18,9 +18,9 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges, setLoading 
   const nodeColor = (node) => {
     switch (node.type) {
       case 'root':
-        return '#6E83F4';
+        return '#367ccc';
       case 'sub':
-        return '#2C2F48';
+        return '#437d8b';
       default:
         return '#1E1E1E';
     }

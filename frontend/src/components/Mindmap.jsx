@@ -114,9 +114,9 @@ const Mindmap = ({ data }) => {
   const nodeColor = (node) => {
     switch (node.type) {
       case 'root':
-        return '#91bbeb';
+        return '#367ccc';
       case 'sub':
-        return '#2C2F48';
+        return '#437d8b';
       default:
         return '#1E1E1E';
     }
@@ -180,15 +180,15 @@ const Mindmap = ({ data }) => {
       nodeTypes={nodeTypes}
       fitView
     >
-      <Panel position="top-left">
-        <Paper elevation={3} sx={{ px: 1.5, py: 1.2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.2rem' } }}>{data?.title}</Typography>
+      <Panel position="top-left" style={{ maxWidth: 300 }}>
+        <Paper elevation={3} sx={{ px: 1.5, py: 1.2, backgroundColor: 'background.iconBackground' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>{data?.title}</Typography>
         </Paper>
       </Panel>
 
       <Panel position="top-center">
         <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Paper sx={{ p: 0.8, borderRadius: '4px' }}>
+          <Paper sx={{ p: 0.8, borderRadius: '4px', backgroundColor: 'background.iconBackground' }}>
             <TextField
               label="Search Nodes"
               variant="outlined"

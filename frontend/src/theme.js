@@ -78,7 +78,7 @@ export const darkTheme = createTheme({
       paper: "#1e2339",
       iconBackground: '#292e44',
       rootNode: '#367ccc',
-      subNode: '#2C2F48',
+      subNode: '#437d8b8f',
       detailNode: '#1E1E1E',
     },
     text: {

@@ -1,16 +1,18 @@
 'use client'
 import ModalOpenButton from '@/components/ModalOpenButton';
 import { Box, Button, Modal, TextField, Typography } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNotification } from '../contexts/NotificationProvider';
 import apiClient from '@/apiClient';
 import Mindmap from '@/components/Mindmap';
+import StepsModal from '@/components/StepsModal';
 
 const MapUsingUrl = () => {
   const { showNotification } = useNotification();
   const [url, setUrl] = useState();
   const [loading, setLoading] = useState(false);
   const [mindmapData, setMindmapData] = useState();
+  const evtSourceRef = useRef(null);
 
   const modalStyles = {
     position: 'absolute',
@@ -28,6 +30,8 @@ const MapUsingUrl = () => {
   };
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [showStepsModal, setShowStepsModel] = useState(false);
+  const [steps, setSteps] = useState([]);
 
   useEffect(() => {
     const cachedData = localStorage.getItem('graph-by-url')
@@ -43,39 +47,77 @@ const MapUsingUrl = () => {
   const openModal = () => setModalOpen(true);
 
   const handleSubmit = async () => {
-    if (!url) return showNotification({ message: 'Plase enter a valid URL', status: 'error' });
+    if (!url) return showNotification({ message: 'Please enter a valid URL', status: 'error' });
 
-    setLoading(true);
-    // validating url
-    await apiClient.validateUrl(url).then(async (data) => {
+    try {
+      setSteps([]);
+      setModalOpen(true);
+      setLoading(true);
+
+      // validating the url
+      const data = await apiClient.validateUrl(url);
       if (data.is_valid && data.is_reachable) {
-        showNotification({
-          message: `${data?.message} & Generating Mindmap...`,
-          status: 'success'
-        });
+        showNotification({ message: data?.message, status: 'success' });
+        setModalOpen(false);
+        setLoading(false)
+      }
 
-        // fetching map data
-        await apiClient.generateMindmapUsingUrl(url).then((data) => {
-          if (data) {
-            setMindmapData(data)
-            localStorage.setItem('graph-by-url', JSON.stringify(data));
-            setModalOpen(false)
+      // steps update process
+      setShowStepsModel(true);
+      const sseUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/generate-mindmap-by-url-sse?url=${encodeURIComponent(url)}`;
+      evtSourceRef.current = new EventSource(sseUrl);
+
+      evtSourceRef.current.onmessage = (event) => {
+        // process finished
+        try {
+          // Try parsing as JSON (graph data)
+          const parsed = JSON.parse(event.data);
+          if (parsed?.graph) {
+            // Final graph data
+            setMindmapData(parsed);
+            localStorage.setItem('graph-by-url', JSON.stringify(parsed));
+
+            evtSourceRef.current.close();
+            setShowStepsModel(false);
+            setSteps([]);
+            return;
           }
-        })
-      }
-      else {
-        showNotification({ message: data?.message, status: 'warning' })
-      }
-    }).catch((err) => {
-      showNotification({ message: err, status: 'error' })
-    });
-    setLoading(false);
-  }
+        } catch {
+          // Not JSON → treat as step update
+          setSteps((prev) => [...prev, event.data]);
+        }
+      };
+
+      // some error in process
+      evtSourceRef.current.onerror = () => {
+        // Ignore the final close error if already done
+        if (evtSourceRef.current.readyState === EventSource.CLOSED) {
+          evtSourceRef.current.close();
+          setShowStepsModel(false);
+          setSteps([]);
+          return;
+        }
+        // if ref is there
+        if (evtSourceRef.current) {
+          evtSourceRef.current.close();
+        }
+        setShowStepsModel(false);
+        setSteps([])
+        showNotification({ message: 'Error streaming updates', status: 'error' });
+      };
+
+    } catch (err) {
+      setModalOpen(false);
+      showNotification({ message: err.message || 'Something went wrong', status: 'error' });
+    }
+  };
 
   return (
     <Box className='layout'>
       <ModalOpenButton onClick={openModal} title='Enter URL' />
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+
+      {/* url model  */}
+      <Modal open={modalOpen} onClose={() => { }}>
         <Box sx={modalStyles}>
 
           <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1.2rem', sm: '1.4rem' } }}>
@@ -92,6 +134,14 @@ const MapUsingUrl = () => {
           </Box>
         </Box>
       </Modal>
+
+      {/* update model */}
+      <StepsModal
+        open={showStepsModal}
+        steps={steps}
+        title="Processing..."
+      />
+
       {mindmapData && <Mindmap data={mindmapData} />}
     </Box>
   )

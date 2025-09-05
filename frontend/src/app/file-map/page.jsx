@@ -2,17 +2,28 @@
 import Mindmap from '@/components/Mindmap'
 import ModalOpenButton from '@/components/ModalOpenButton'
 import { Box, Button, Divider, IconButton, List, ListItem, ListItemText, Modal, Typography } from '@mui/material'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNotification } from '../contexts/NotificationProvider';
 import apiClient from '@/apiClient';
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DeleteIcon from "@mui/icons-material/Delete";
+import StepsModal from '@/components/StepsModal';
+
+const ALLOWED_FILE_TYPES = [
+  "application/pdf",
+  "text/plain",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/markdown",
+  "text/html",
+];
 
 const MapUsingDocs = () => {
   const { showNotification } = useNotification();
   const [loading, setLoading] = useState(false);
   const [mindmapData, setMindmapData] = useState();
   const [files, setFiles] = useState([]);
+  const evtSourceRef = useRef(null);
 
   const modalStyles = {
     position: 'absolute',
@@ -30,6 +41,10 @@ const MapUsingDocs = () => {
   };
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [showStepsModal, setShowStepsModel] = useState(false);
+  const [steps, setSteps] = useState([]);
+
+  const openModal = () => setModalOpen(true);
 
   useEffect(() => {
     const cachedData = localStorage.getItem('graph-by-file')
@@ -45,17 +60,17 @@ const MapUsingDocs = () => {
   const handleFileChange = (e) => {
     if (!e.target.files) return;
 
-    // Filter only pdf and txt files
     const validFiles = Array.from(e.target.files).filter(file =>
-      file.type === "application/pdf" || file.type === "text/plain"
+      ALLOWED_FILE_TYPES.includes(file.type)
     );
 
-    if (validFiles.length !== e.target.files.length) {
-      showNotification({ message: "Only PDF and TXT files are allowed", status: 'error' });
+    if (validFiles.length === 0) {
+      showNotification({ message: 'No valid files selected', status: 'error' });
+      return;
     }
 
     setFiles(prev => [...prev, ...validFiles]);
-    e.target.value = ""; // reset input
+    e.target.value = ""; // reset input to allow re-selecting same files
   };
 
   const handleRemoveFile = (index) => {
@@ -63,45 +78,99 @@ const MapUsingDocs = () => {
   };
 
   const handleUpload = async () => {
-    if (files.length === 0) return showNotification({ message: "Please select one file", status: 'warning' });
-    if (files.length > 1) return showNotification({ message: "Please select only one file", status: 'warning' });
+    if (!files || files.length !== 1) {
+      return showNotification({
+        message: 'Please select a single file',
+        status: 'error',
+      });
+    }
 
     setLoading(true);
-    const formData = new FormData();
+    setSteps([]);
 
-    files.forEach(file => {
-      formData.append("file", file);
-    });
+    try {
+      // Upload file and get a token for SSE
+      const uploadFileForSSE = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
 
-    showNotification({ message: 'Generating Mindmap...', status: 'success' })
-    await apiClient.generateMindmapUsingFile(formData).then(data => {
-      if (data) {
-        setMindmapData(data);
-        localStorage.setItem('graph-by-file', JSON.stringify(data));
-      }
-    }).catch((err) => {
-      showNotification({ message: err, status: 'error' })
-    });
+        try {
+          const data = await apiClient.uploadTempFile(formData);
+          if (data?.token) {
+            showNotification({
+              message: 'File uploaded successfully.',
+              status: 'success',
+            });
+            return data.token;
+          } else {
+            return showNotification({ message: 'No token received from server', status: 'error' });
+          }
+        } catch (err) {
+          showNotification({ message: err.message || 'File upload failed', status: 'error' });
+          throw err;
+        }
+      };
 
-    setFiles([]);
-    setLoading(false);
-    setModalOpen(false);
+      const token = await uploadFileForSSE(files[0]); // only one file
+      setLoading(false); // stops loading in buttons
+      setModalOpen(false); // closing the upload modal 
+      setShowStepsModel(true); // opening steps modal
+
+      // Connect to SSE for step updates
+      const sseUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/generate-mindmap-by-file-sse?token=${token}`;
+      evtSourceRef.current = new EventSource(sseUrl);
+
+      evtSourceRef.current.onmessage = (event) => {
+        try {
+          // Final graph data
+          const parsed = JSON.parse(event.data);
+          if (parsed?.graph) {
+            setMindmapData(parsed);
+            localStorage.setItem('graph-by-file', JSON.stringify(parsed));
+
+            evtSourceRef.current.close();
+            setShowStepsModel(false);
+            setSteps([]);
+            return;
+          }
+        } catch {
+          // Step update
+          setSteps((prev) => [...prev, event.data]);
+        }
+      };
+
+      evtSourceRef.current.onerror = () => {
+        if (evtSourceRef.current) {
+          evtSourceRef.current.close();
+        }
+        setShowStepsModel(false);
+        setSteps([]);
+        showNotification({
+          message: 'Error streaming file upload updates',
+          status: 'error',
+        });
+      };
+    } catch (err) {
+      setShowStepsModel(false);
+      setSteps([]);
+      setLoading(false);
+      showNotification({ message: err.message || 'Something went wrong', status: 'error' });
+    }
   };
 
-  const openModal = () => setModalOpen(true);
 
   return (
     <Box className='layout'>
       <ModalOpenButton onClick={openModal} title='Upload File' />
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal open={modalOpen} onClose={() => { }}>
         <Box sx={modalStyles}>
 
           <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1.2rem', sm: '1.4rem' } }}>
             Upload File and See the Big Picture
           </Typography>
           <Typography variant="caption" mb={2} sx={{ display: 'block' }}>
-            Only PDF and TXT files are allowed
+            Only PDF, TXT, DOC, DOCX, MD & HTML files are allowed
           </Typography>
 
           <Button
@@ -113,7 +182,7 @@ const MapUsingDocs = () => {
             loading={loading}
           >
             Select File
-            <input hidden type="file" accept=".pdf,.txt" onChange={handleFileChange} />
+            <input hidden type="file" accept=".pdf,.txt,.doc,.docx,.md,.html" onChange={handleFileChange} />
           </Button>
 
           {files.length > 0 ? (
@@ -156,6 +225,12 @@ const MapUsingDocs = () => {
         </Box>
       </Modal>
 
+      {/* update model */}
+      <StepsModal
+        open={showStepsModal}
+        steps={steps}
+        title="Processing..."
+      />
       {mindmapData && <Mindmap data={mindmapData} />}
     </Box>
   )

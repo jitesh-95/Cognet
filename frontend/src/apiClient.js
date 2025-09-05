@@ -67,6 +67,18 @@ const apiClient = {
     }
   },
 
+  uploadTempFile: async (formData) => {
+    try {
+      const response = await axiosInstance.post('/upload-temp-file',
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      return response.data;
+    } catch (err) {
+      return handleError(err, 'Failed to upload file');
+    }
+  },
+
   createUser: async (data) => {
     try {
       const response = await axiosInstance.post('/users', data);

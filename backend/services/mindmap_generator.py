@@ -1,12 +1,18 @@
 # backend/mindmap_generator.py
-from fastapi import HTTPException
+from fastapi import HTTPException,UploadFile
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from services.llm import get_graph_llm, get_summarizer_llm
 from langchain.prompts import PromptTemplate
 from utils.llm_handler import LLMTokenExpiredError, safe_invoke
+from langchain.schema.runnable import RunnableSequence
+from services import extractor
 import json
 import re
 import uuid
+import logging
+from io import BytesIO
+
+logger = logging.getLogger(__name__)
 
 # ✅ PromptTemplate for graph generation
 GRAPH_PROMPT = PromptTemplate(
@@ -235,3 +241,55 @@ class MindmapGenerator:
         """Split the text into chunks of a specific size."""
         splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size)
         return splitter.split_text(text)
+    
+    # calling LLM every chunk
+    async def process_chunks_and_generate_mindmap(self,chunks: list[str], summarizer, prompt_template: PromptTemplate):
+        """
+        Summarize text chunks progressively and generate a combined mindmap.
+        """
+        prev_summary = ""
+        chunk_mindmaps = []  # ✅ Collect all chunk-level mindmaps
+
+        # Build summarization chain once
+        chain: RunnableSequence = prompt_template | summarizer
+
+        for i, chunk in enumerate(chunks):
+            try:
+                # ✅ Run summarization with safe_invoke
+                result = await safe_invoke(
+                    chain.ainvoke,
+                    {"previous_summary": prev_summary, "current_chunk": chunk}
+                )
+
+                if result is None:
+                    logger.warning(f"Summarization returned None for chunk {i}")
+                    summarized_text = ""
+                else:
+                    summarized_text = (
+                        result.content if hasattr(result, "content") else str(result)
+                    )
+
+                # Generate mindmap for this chunk
+                mindmap = await self.generate_chunk_mindmap(
+                    summarized_text, chunk_index=i
+                )
+
+                # ✅ Collect per-chunk mindmap instead of merging here
+                chunk_mindmaps.append(mindmap)
+
+                prev_summary = summarized_text
+            except Exception as e:
+                logger.error(f"Failed processing chunk: {e}", exc_info=True)
+                raise
+
+        # ✅ Merge all collected mindmaps into one final graph
+        final_graph = merge_mindmaps(chunk_mindmaps)
+        return final_graph
+
+
+    async def extract_text_from_pdf(file: UploadFile) -> str:
+        """
+        Extract text from a PDF file.
+        """
+        pdf_bytes = await file.read()
+        return extractor.extract_text_from_pdf(BytesIO(pdf_bytes))
