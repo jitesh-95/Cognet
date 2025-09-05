@@ -1,9 +1,12 @@
-import { Box, Paper, Typography } from "@mui/material";
-import { Handle } from "@xyflow/react";
+import { Box, Button, Paper, Typography } from "@mui/material";
+import { Handle, NodeToolbar } from "@xyflow/react";
 
 export const RootNode = (props) => {
-  return (
-    <Box sx={{ position: "relative" }}>
+  return (<>
+    <NodeToolbar>
+      <Button size="small" variant='contained' sx={{ p: 0, minWidth: '45px' }} onClick={() => props.onEdit(props)}>Edit</Button>
+    </NodeToolbar>
+    <Box sx={{ position: 'relative' }}>
       <Paper sx={{
         p: 1,
         textAlign: 'center',
@@ -18,12 +21,16 @@ export const RootNode = (props) => {
       <Handle type='source' position={props?.sourcePosition} style={{ position: "absolute" }} />
       <Handle type='target' position={props?.targetPosition} style={{ position: "absolute" }} />
     </Box>
+  </>
   );
 };
 
 export const SubNode = (props) => {
-  return (
-    <Box sx={{ position: "relative" }}>
+  return (<>
+    <NodeToolbar>
+      <Button size="small" variant='contained' sx={{ p: 0, minWidth: '45px' }} onClick={() => props.onEdit(props)}>Edit</Button>
+    </NodeToolbar>
+    <Box sx={{ position: 'relative' }}>
       <Paper sx={{
         p: 1,
         textAlign: 'center',
@@ -38,12 +45,16 @@ export const SubNode = (props) => {
       <Handle type='source' position={props?.sourcePosition} style={{ position: "absolute" }} />
       <Handle type='target' position={props?.targetPosition} style={{ position: "absolute" }} />
     </Box>
+  </>
   );
 };
 
 export const DetailNode = (props) => {
-  return (
-    <Box sx={{ position: "relative" }}>
+  return (<>
+    <NodeToolbar>
+      <Button size="small" variant='contained' sx={{ p: 0, minWidth: '45px' }} onClick={() => props.onEdit(props)}>Edit</Button>
+    </NodeToolbar>
+    <Box sx={{ position: 'relative' }}>
       <Paper sx={{
         p: 1,
         textAlign: 'center',
@@ -58,5 +69,6 @@ export const DetailNode = (props) => {
       <Handle type='source' position={props?.sourcePosition} style={{ position: "absolute" }} />
       <Handle type='target' position={props?.targetPosition} style={{ position: "absolute" }} />
     </Box>
+  </>
   );
 };

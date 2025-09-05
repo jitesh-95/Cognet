@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import '@xyflow/react/dist/style.css';
 import ELK from "elkjs/lib/elk.bundled.js";
 import {
@@ -23,6 +23,8 @@ import { useNotification } from "@/app/contexts/NotificationProvider";
 import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import ExportMindmap from "./ExportMindmap";
 import { getDynamicNodeHeight } from "@/app/utils";
+import EditNode from "./EditNode";
+import { usePathname } from "next/navigation";
 
 const elk = new ELK();
 
@@ -69,12 +71,6 @@ const getLayoutedElements = (nodes, edges, options = {}) => {
     .catch(console.error);
 };
 
-const nodeTypes = {
-  root: RootNode,
-  sub: SubNode,
-  detail: DetailNode
-};
-
 const Mindmap = ({ data }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -83,10 +79,15 @@ const Mindmap = ({ data }) => {
   const { showNotification } = useNotification();
   const [exportLoading, setExportLoading] = useState(false);
   const { darkMode } = useThemeMode();
+  const pathname = usePathname();
   // search
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [results, setResults] = useState([]);
+  // editing
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingNode, setEditingNode] = useState(null); // {id, label, content}
+  const [isDirty, setIsDirty] = useState(false);
 
   // menus
   const open = Boolean(anchorEl);
@@ -155,7 +156,7 @@ const Mindmap = ({ data }) => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // -------------------------selecting node--------------------------------
+  // -------------------------selecting node for searching--------------------------------
   const handleSelectNode = (node) => {
     if (node?.position) {
       const zoom = 1.5;
@@ -166,6 +167,52 @@ const Mindmap = ({ data }) => {
     setResults([]);
     setSearchQuery(""); // clear field
   };
+
+  //---------------------- editing--------------------------------
+  // edit handler
+  const handleEditNode = (node) => {
+    setShowEditModal(true);
+    if (node) {
+      setEditingNode({ id: node.id, label: node.data?.label, content: node.data?.content });
+    }
+  };
+
+  // edit save handler
+  const handleSaveNode = (updatedData) => {
+    setNodes((nds) =>
+      nds?.map((n) =>
+        n.id === editingNode.id ? { ...n, data: { ...n.data, ...updatedData } } : n
+      )
+    );
+    setEditingNode(null);
+    setIsDirty(true);
+    setShowEditModal(false);
+    showNotification({ message: 'Node updated temporarily. Click SAVE to save permanently.', status: 'success' });
+  };
+
+  // saving permanently to localstorage
+  const handlePermanentSave = () => {
+    setIsDirty(false);
+    showNotification({ message: 'Permanently saved successfully.', status: 'success' });
+    switch (pathname) {
+      case '/url-map': {
+        return localStorage.setItem('graph-by-url', JSON.stringify({ graph: { nodes, edges }, title: data?.title }));
+      }
+      case '/file-map': {
+        return localStorage.setItem('graph-by-file', JSON.stringify({ graph: { nodes, edges }, title: data?.title }));
+      }
+    }
+  };
+
+  // ✅ Memoize nodeTypes to avoid React Flow warning
+  const nodeTypes = useMemo(
+    () => ({
+      root: (props) => <RootNode {...props} onEdit={handleEditNode} />,
+      sub: (props) => <SubNode {...props} onEdit={handleEditNode} />,
+      detail: (props) => <DetailNode {...props} onEdit={handleEditNode} />,
+    }),
+    []
+  );
 
   return (<div style={{ height: '90vh' }} id="mindmap-wrapper">
     <Backdrop
@@ -238,8 +285,9 @@ const Mindmap = ({ data }) => {
               </List>
             )}
           </Box>
+          {isDirty && <Button size="small" variant="contained" onClick={handlePermanentSave}>Save</Button>}
           {/* export button */}
-          <ExportMindmap originalNodes={data.graph.nodes} originalEdges={data.graph.edges} nodes={nodes} edges={edges} setLoading={setExportLoading} />
+          <ExportMindmap nodes={nodes} edges={edges} setLoading={setExportLoading} />
           {/* layout button  */}
           <Button variant="contained" size="small" onClick={handleClick} startIcon={<ViewCompactIcon />}>Layout</Button>
         </Box>
@@ -269,6 +317,15 @@ const Mindmap = ({ data }) => {
       <Controls className={darkMode ? "mindmap-controls-dark" : "mindmap-controls-light"} />
       <MiniMap pannable zoomable nodeStrokeWidth={3} nodeColor={nodeColor} bgColor={darkMode ? "rgba(255,255,255,0.5)" : 'rgba(77, 76, 76, 0.7)'} />
     </ReactFlow>
+
+    {/* node editing  */}
+    <EditNode
+      open={showEditModal}
+      node={editingNode}
+      onClose={() => { }}
+      onCancel={() => setShowEditModal(false)}
+      onSave={handleSaveNode}
+    />
   </div>
   );
 };

@@ -8,7 +8,7 @@ import ELK from "elkjs/lib/elk.bundled.js";
 import { buildElkGraph, getFileName } from '@/app/utils';
 import jsPDF from 'jspdf';
 
-const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges, setLoading }) => {
+const ExportMindmap = ({ nodes, edges, setLoading }) => {
   const [anchorDownload, setAnchorDownload] = useState(null);
   const openDownload = Boolean(anchorDownload);
 
@@ -82,7 +82,7 @@ const ExportMindmap = ({ nodes, edges, originalNodes, originalEdges, setLoading 
   const exportAsJSON = () => {
     setLoading(true);
     handleCloseDownload();
-    const data = JSON.stringify({ originalNodes, originalEdges }, null, 2);
+    const data = JSON.stringify({ nodes, edges }, null, 2);
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
