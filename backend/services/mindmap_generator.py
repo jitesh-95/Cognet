@@ -75,6 +75,14 @@ Example:
         "label": "Supporting Detail",
         "content": "Lower-level explanation"
       }}
+    }},
+    {{
+      "id": "node4",
+      "type": "detail",
+      "data": {{
+        "label": "Supporting Detail",
+        "content": "Lower-level explanation"
+      }}
     }}
   ],
   "edges": [
@@ -87,6 +95,18 @@ Example:
       "id": "edge2",
       "source": "node2",
       "target": "node3"
+    }}
+    }},
+    {{
+      "id": "edge3",
+      "source": "node2",
+      "target": "node3"
+    }}
+    }},
+    {{
+      "id": "edge4",
+      "source": "node3",
+      "target": "node4"
     }}
   ]
 }}
