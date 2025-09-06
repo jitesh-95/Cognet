@@ -1,7 +1,7 @@
-import Footer from "./components/Footer";
-import HeroSection from "./components/HeroSection";
-import FeaturesSection from "./components/FeaturesSection";
-import Contactus from "./components/Contactus";
+import Footer from "./components/home/Footer";
+import HeroSection from "./components/home/HeroSection";
+import FeaturesSection from "./components/home/FeaturesSection";
+import Contactus from "./components/home/Contactus";
 
 export default function Home() {
   return (

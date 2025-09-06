@@ -1,19 +1,13 @@
-import { Box, Button, ListItemIcon, ListItemText, Menu, MenuItem } from '@mui/material';
-import React, { useState } from 'react';
+import { ListItemIcon, ListItemText, MenuItem } from '@mui/material';
+import React from 'react';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import ImageIcon from '@mui/icons-material/Image';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import DownloadIcon from '@mui/icons-material/Download';
 import ELK from "elkjs/lib/elk.bundled.js";
-import { buildElkGraph, getFileName } from '../utils';
+import { buildElkGraph, getFileName } from '../../utils';
 import jsPDF from 'jspdf';
 
-const ExportMindmap = ({ nodes, edges, setLoading }) => {
-  const [anchorDownload, setAnchorDownload] = useState(null);
-  const openDownload = Boolean(anchorDownload);
-
-  const handleClickDownload = (event) => setAnchorDownload(event.currentTarget);
-  const handleCloseDownload = () => setAnchorDownload(null);
+const ExportMindmap = ({ nodes, edges, setLoading, closeMenu }) => {
 
   const nodeColor = (node) => {
     switch (node.type) {
@@ -81,7 +75,7 @@ const ExportMindmap = ({ nodes, edges, setLoading }) => {
   //-----------------------for json------------------------
   const exportAsJSON = () => {
     setLoading(true);
-    handleCloseDownload();
+    closeMenu();
     const data = JSON.stringify({ nodes, edges }, null, 2);
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -100,7 +94,7 @@ const ExportMindmap = ({ nodes, edges, setLoading }) => {
   //-----------------------for Image------------------------
   const exporAsImage = async () => {
     setLoading(true);
-    handleCloseDownload();
+    closeMenu();
 
     const padding = 50;
     const nodeWidth = 320;
@@ -180,7 +174,7 @@ const ExportMindmap = ({ nodes, edges, setLoading }) => {
   // ----------------------for PDF --------------------------
   const exportAsPDF = async () => {
     setLoading(true);
-    handleCloseDownload();
+    closeMenu();
 
     const padding = 50;
     const nodeWidth = 320;
@@ -239,36 +233,26 @@ const ExportMindmap = ({ nodes, edges, setLoading }) => {
   };
 
   return (
-    <Box>
-      <Button variant="contained" size="small" startIcon={<DownloadIcon />} fullWidth onClick={handleClickDownload}>Download</Button>
-      {/* download menu */}
-      <Menu
-        anchorEl={anchorDownload}
-        open={openDownload}
-        onClose={handleCloseDownload}
-        autoFocus
-        disableAutoFocusItem
-      >
-        <MenuItem onClick={exporAsImage}>
-          <ListItemIcon>
-            <ImageIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>IMAGE</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={exportAsPDF}>
-          <ListItemIcon>
-            <PictureAsPdfIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>PDF</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={exportAsJSON}>
-          <ListItemIcon>
-            <InsertDriveFileIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>JSON</ListItemText>
-        </MenuItem>
-      </Menu>
-    </Box>
+    <>
+      <MenuItem onClick={exporAsImage}>
+        <ListItemIcon>
+          <ImageIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>IMAGE</ListItemText>
+      </MenuItem>
+      <MenuItem onClick={exportAsPDF}>
+        <ListItemIcon>
+          <PictureAsPdfIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>PDF</ListItemText>
+      </MenuItem>
+      <MenuItem onClick={exportAsJSON}>
+        <ListItemIcon>
+          <InsertDriveFileIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>JSON</ListItemText>
+      </MenuItem>
+    </>
   )
 }
 

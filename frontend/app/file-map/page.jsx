@@ -1,5 +1,5 @@
 'use client'
-import Mindmap from '../components/Mindmap'
+import Mindmap from '../components/mindmap/Mindmap'
 import ModalOpenButton from '../components/ModalOpenButton'
 import { Box, Button, Divider, IconButton, List, ListItem, ListItemText, Modal, Typography } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react';

@@ -2,7 +2,7 @@
 
 import { Box, Typography } from '@mui/material';
 import React from 'react';
-import pgk from '../../package.json';
+import pgk from '../../../package.json';
 
 
 const APP_VERSION = pgk.version; // Update from package.json if needed

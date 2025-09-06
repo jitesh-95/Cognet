@@ -4,7 +4,7 @@ import { Box, Button, Modal, TextField, Typography } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNotification } from '../contexts/NotificationProvider';
 import apiClient from '../apiClient';
-import Mindmap from '../components/Mindmap';
+import Mindmap from '../components/mindmap/Mindmap';
 import StepsModal from '../components/StepsModal';
 
 const MapUsingUrl = () => {

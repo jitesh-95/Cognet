@@ -5,8 +5,8 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Image from "next/image";
-import styles from '../styles/page.module.css';
-import heroImg from '../images/heroImg.svg'
+import styles from '../../styles/page.module.css';
+import heroImg from '../../images/heroImg.svg'
 
 const HeroSection = () => {
   return (
