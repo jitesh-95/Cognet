@@ -21,6 +21,7 @@ GRAPH_PROMPT = PromptTemplate(
 You are a mindmap generator. Based on the following text, create a JSON mindmap with "nodes" and "edges".
 
 Requirements:
+- Keep the same language intact (do not change the language of text provided)
 - Each node must include:
   - id (unique)
   - type (MUST follow these depth-based rules):

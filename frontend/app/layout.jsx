@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import ThemeContextProvider from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationProvider';
 import Head from 'next/head';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: 'Cognet',
@@ -27,6 +28,9 @@ export default async function RootLayout({ children }) {
           <NotificationProvider>
             <Navbar />
             {children}
+
+            {/* vercel analytics, tells visitors count */}
+            <Analytics />
           </NotificationProvider>
         </ThemeContextProvider>
       </body>
