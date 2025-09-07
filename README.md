@@ -1,6 +1,4 @@
-# 🧠 Cognet – Agentic AI-Powered Mind Mapping Tool Designed for Learners, Researchers, and Professionals
-
-![Cognet Logo](frontend/app/images/logo.png)  
+# <img src="frontend/app/images/logo.png" alt="Cognet Logo" width="24" height="24"/> Cognet – Agentic AI-Powered Mind Mapping Tool Designed for Learners, Researchers, and Professionals  
 
 **Cognet** is a next-generation **AI-powered mind mapping application** that transforms URLs and uploaded files into **interactive, intelligent mind maps** in real-time. Built with agentic AI and real-time streaming, Cognet helps you **organize, visualize, and share ideas effortlessly**—perfect for students, professionals, and creative thinkers alike. 🚀  
 
