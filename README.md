@@ -1,6 +1,6 @@
 # 🧠 Cognet – Agentic AI-Powered Mind Mapping Tool Designed for Learners, Researchers, and Professionals
 
-![Cognet Logo](frontend\app\images\logo.png)  
+![Cognet Logo](frontend/app/images/logo.png)  
 
 **Cognet** is a next-generation **AI-powered mind mapping application** that transforms URLs and uploaded files into **interactive, intelligent mind maps** in real-time. Built with agentic AI and real-time streaming, Cognet helps you **organize, visualize, and share ideas effortlessly**—perfect for students, professionals, and creative thinkers alike. 🚀  
 
@@ -38,14 +38,14 @@ With Cognet, the AI doesn’t just generate nodes—it **understands your conten
 
 ### 💻 Laptop
 
-![Laptop Screenshot Light](frontend\app\images\laptop_light.png) | ![Laptop Screenshot Dark](frontend\app\images\laptop_dark.png)
+![Laptop Screenshot Light](frontend/app/images/laptop_light.png) | ![Laptop Screenshot Dark](frontend/app/images/laptop_dark.png)
 
 ### 📱 Tablet & Mobile
 
 | Tablet | Mobile |
 |--------|--------|
-| ![Tablet Screenshot Light](frontend\app\images\tab_light.png) | ![Mobile Screenshot Light](frontend\app\images\mobile_light.png) |
-| ![Tablet Screenshot Dark](frontend\app\images\tab_dark.png) | ![Mobile Screenshot Dark](frontend\app\images\mobile_dark.png) |
+| ![Tablet Screenshot Light](frontend/app/images/tab_light.png) | ![Mobile Screenshot Light](frontend/app/images/mobile_light.png) |
+| ![Tablet Screenshot Dark](frontend/app/images/tab_dark.png) | ![Mobile Screenshot Dark](frontend/app/images/mobile_dark.png) |
 
 ---
 
