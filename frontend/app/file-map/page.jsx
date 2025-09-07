@@ -144,6 +144,7 @@ const MapUsingDocs = () => {
           evtSourceRef.current.close();
         }
         setShowStepsModel(false);
+        setLoading(false);
         setSteps([]);
         showNotification({
           message: 'Error streaming file upload updates',

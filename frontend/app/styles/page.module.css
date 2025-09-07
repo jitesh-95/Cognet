@@ -171,3 +171,13 @@ a.secondary {
   width: 100%;
   height: auto;
 }
+
+.featureCardIcon {
+  transition: transform 0.5s ease-in-out;
+}
+
+.featureCard:hover {
+  .featureCardIcon {
+    transform: scale(1.4);
+  }
+}

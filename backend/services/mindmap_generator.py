@@ -257,9 +257,9 @@ class MindmapGenerator:
         # Clean title (remove whitespace/newlines)
         return title.strip()
 
-    async def split_text_into_chunks(self, text: str, chunk_size: int = 3000):
+    async def split_text_into_chunks(self, text: str, chunk_size: int = 3000, chunk_overlap:int=200):
         """Split the text into chunks of a specific size."""
-        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size)
+        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         return splitter.split_text(text)
     
     # calling LLM every chunk

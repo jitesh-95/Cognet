@@ -95,6 +95,7 @@ const MapUsingUrl = () => {
           evtSourceRef.current.close();
           setShowStepsModel(false);
           setSteps([]);
+          setLoading(false);
           return;
         }
         // if ref is there
@@ -103,6 +104,7 @@ const MapUsingUrl = () => {
         }
         setShowStepsModel(false);
         setSteps([])
+        setLoading(false);
         showNotification({ message: 'Error streaming updates', status: 'error' });
       };
 
