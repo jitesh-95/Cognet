@@ -18,6 +18,8 @@ const ALLOWED_FILE_TYPES = [
   "text/html",
 ];
 
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
+
 const MapUsingDocs = () => {
   const { showNotification } = useNotification();
   const [loading, setLoading] = useState(false);
@@ -61,11 +63,11 @@ const MapUsingDocs = () => {
     if (!e.target.files) return;
 
     const validFiles = Array.from(e.target.files).filter(file =>
-      ALLOWED_FILE_TYPES.includes(file.type)
+      ALLOWED_FILE_TYPES.includes(file.type) && file.size <= MAX_FILE_SIZE
     );
 
     if (validFiles.length === 0) {
-      showNotification({ message: 'No valid files selected', status: 'error' });
+      showNotification({ message: 'No valid files selected or file size exceeds 2 MB', status: 'error' });
       return;
     }
 

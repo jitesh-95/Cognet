@@ -3,6 +3,8 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import stepsIcon from '../../images/howItWorks.svg';
 
 const steps = [
   {
@@ -103,16 +105,13 @@ const HowItWorks = () => {
         <Box
           sx={{
             height: { xs: 300, sm: 500, md: 400 },
-            backgroundColor: "grey.200",
             borderRadius: 3,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "text.secondary",
-            fontStyle: "italic",
           }}
         >
-          Illustration / App Screenshot
+          <Image alt="fast illustration" priority width={400} height={400} src={stepsIcon} />
         </Box>
       </motion.div>
     </Box>

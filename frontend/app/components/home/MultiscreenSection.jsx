@@ -1,6 +1,9 @@
 'use client'
 import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
+import lightLayout from '../../images/lightThemeLayout.png';
+import Image from "next/image";
+import styles from '../../styles/page.module.css';
 
 const MultiScreenShowcaseSection = () => {
   return (
@@ -29,6 +32,7 @@ const MultiScreenShowcaseSection = () => {
             fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
             textAlign: "center",
             mb: 4,
+            mx: { xs: 2, sm: 'auto' }
           }}
         >
           Multi-Screen Showcase 🖥️📱
@@ -54,16 +58,13 @@ const MultiScreenShowcaseSection = () => {
           sx={{
             height: { xs: 300, sm: 400, md: 600 },
             width: "100%",
-            backgroundColor: "grey.200",
-            borderRadius: 3,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontStyle: "italic",
-            color: "text.secondary",
+            overflow: 'hidden'
           }}
         >
-          App Screenshots / Illustration
+          <Image src={lightLayout} height={1080} width={1920} alt='layout image' priority className={styles.heroImage} />
         </Box>
       </motion.div>
     </Box>

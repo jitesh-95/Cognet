@@ -4,6 +4,8 @@ import React from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { motion } from "framer-motion";
+import fastIllustration from '../../images/FastLoading.svg';
+import Image from "next/image";
 
 const highlights = [
   {
@@ -56,16 +58,13 @@ const FastLightweightSection = () => {
         <Box
           sx={{
             height: { xs: 300, sm: 500, md: 400 },
-            backgroundColor: "grey.200",
             borderRadius: 3,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "text.secondary",
-            fontStyle: "italic"
           }}
         >
-          Illustration / App Screenshot
+          <Image alt="fast illustration" priority width={450} height={450} src={fastIllustration} />
         </Box>
       </motion.div>
 
